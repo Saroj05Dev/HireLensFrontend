@@ -1,56 +1,63 @@
 import axios from "axios";
-import store from "../store/store";
-import { logout } from "../features/auth/authSlice";
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    withCredentials: true,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true,
 });
 
 let isRefreshing = false;
 let failedQueue = [];
+let onLogout = null;
+
+export const setLogoutHandler = (handler) => {
+  onLogout = handler;
+};
 
 const processQueue = (error) => {
-    failedQueue.forEach(p => error ? p.reject(error) : p.resolve());
-    failedQueue = [];
+  failedQueue.forEach((p) =>
+    error ? p.reject(error) : p.resolve()
+  );
+  failedQueue = [];
 };
 
 axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
-        
-        if(error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-            if(isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                }).then(() => axiosInstance(originalRequest));
-            }
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-            isRefreshing = true;
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => axiosInstance(originalRequest));
+      }
 
-            try {
-                await axios.post(
-                    `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
-                    {},
-                    { withCredentials: true }
-                );
+      isRefreshing = true;
 
-                processQueue(null);
-                return axiosInstance(originalRequest);
-            } catch (error) {
-                processQueue(error);
-                store.dispatch(logout);
-                return Promise.reject(error);
-            } finally {
-                isRefreshing = false;
-            }
-        }
+      try {
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
 
-        return Promise.reject(error);
+        processQueue(null);
+        return axiosInstance(originalRequest);
+      } catch (err) {
+        processQueue(err);
+
+        if (onLogout) onLogout();
+
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;
