@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
+import Login from "../features/auth/login/Login";
 
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useSelector((s) => s.auth);
@@ -19,12 +20,12 @@ const AppRoutes = () => {
           !isAuthenticated ? <Signup /> : <Navigate to="/dashboard" />
         }
       />
-      {/* <Route
+      <Route
         path="/login"
         element={
           !isAuthenticated ? <Login /> : <Navigate to="/dashboard" />
         }
-      /> */}
+      />
 
       {/* Protected routes */}
       <Route
