@@ -8,6 +8,7 @@ const Sidebar = () => {
         { to: "/dashboard", label: "Dashboard", roles: ["ADMIN", "RECRUITER"] },
         { to: "/jobs", label: "Jobs", roles: ["ADMIN", "RECRUITER"] },
         { to: "/interviews", label: "Interviews", roles: ["INTERVIEWER"] },
+        { to: "/analytics", label: "analytics", roles: ["INTERVIEWER", "ADMIN"] },
     ]
 
     return (

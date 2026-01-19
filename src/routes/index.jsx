@@ -5,6 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
+import JobsPage from "../features/jobs/jobsPage";
 
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useSelector((s) => s.auth);
@@ -33,6 +34,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route 
+        path="jobs"
+        element={
+          <ProtectedRoute>
+            <JobsPage />
           </ProtectedRoute>
         }
       />
