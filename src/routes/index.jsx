@@ -8,9 +8,11 @@ import Login from "../features/auth/login/Login";
 import JobsPage from "../features/jobs/jobsPage";
 import JobDetailsPage from "../features/jobs/JobDetailsPage";
 import CandidateContainer from "../features/candidates/CandidateContainer";
+import InterviewTasksPage from "../features/interviews/InterviewTasksPage";
+import InterviewsContainer from "../features/interviews/InterviewsContainer";
 
 const AppRoutes = () => {
-  const { isAuthenticated, loading } = useSelector((s) => s.auth);
+  const { isAuthenticated, loading, user } = useSelector((s) => s.auth);
 
   if (loading) return null;
 
@@ -63,6 +65,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CandidateContainer />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Interview routes - role-based */}
+      <Route 
+        path="interviews"
+        element={
+          <ProtectedRoute>
+            {user?.role === "INTERVIEWER" ? <InterviewTasksPage /> : <InterviewsContainer />}
           </ProtectedRoute>
         }
       />

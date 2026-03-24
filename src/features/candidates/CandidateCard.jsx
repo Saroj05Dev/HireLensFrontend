@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCandidateStage } from "./candidateSlice";
+import AssignInterview from "../interviews/AssignInterview";
 
 const STAGES = [
   "APPLIED",
@@ -23,13 +24,16 @@ const STAGE_COLORS = {
 const CandidateCard = ({ candidate, onViewProfile }) => {
   const dispatch = useDispatch();
   const { stageUpdateLoading } = useSelector((state) => state.candidates);
+  const { user } = useSelector((state) => state.auth);
   
   const [showStageMenu, setShowStageMenu] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
+  const [showAssignInterview, setShowAssignInterview] = useState(false);
   const [selectedStage, setSelectedStage] = useState("");
   const [note, setNote] = useState("");
 
   const isUpdating = stageUpdateLoading[candidate._id];
+  const canAssignInterview = user?.role === "RECRUITER" && candidate.currentStage === "SCREENING";
 
   const handleStageSelect = (stage) => {
     if (stage === candidate.currentStage) {
@@ -115,10 +119,29 @@ const CandidateCard = ({ candidate, onViewProfile }) => {
           </a>
         )}
 
-        <p className="text-xs text-gray-400 mt-2">
-          Added {new Date(candidate.createdAt).toLocaleDateString()}
-        </p>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-xs text-gray-400">
+            Added {new Date(candidate.createdAt).toLocaleDateString()}
+          </p>
+          
+          {canAssignInterview && (
+            <button
+              onClick={() => setShowAssignInterview(true)}
+              className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+            >
+              Assign Interview
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Assign Interview Modal */}
+      {showAssignInterview && (
+        <AssignInterview
+          candidate={candidate}
+          onClose={() => setShowAssignInterview(false)}
+        />
+      )}
 
       {/* Stage Update Modal */}
       {showNoteInput && (
