@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllInterviewsApi } from "./interview.api";
-import Layout from "../../components/layouts/Layout";
 import InterviewCard from "./InterviewCard";
 import FeedbackViewer from "./FeedbackViewer";
 
@@ -65,18 +64,15 @@ const InterviewsContainer = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="p-6">
-          <h1 className="text-2xl font-bold mb-6">Interview Management</h1>
-          <p className="text-gray-500">Loading interviews...</p>
-        </div>
-      </Layout>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Interview Management</h1>
+        <p className="text-gray-500">Loading interviews...</p>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="p-6">
+    <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Interview Management</h1>
@@ -209,7 +205,6 @@ const InterviewsContainer = () => {
           />
         )}
       </div>
-    </Layout>
   );
 };
 

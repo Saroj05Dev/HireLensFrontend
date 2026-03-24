@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCandidates } from "./candidateSlice";
-import Layout from "../../components/layouts/Layout";
 import CandidateCard from "./CandidateCard";
 import CandidateProfile from "./CandidateProfile";
 
@@ -43,18 +42,15 @@ const CandidateContainer = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="p-6">
-          <h1 className="text-2xl font-bold mb-6">Candidates</h1>
-          <p className="text-gray-500">Loading candidates...</p>
-        </div>
-      </Layout>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Candidates</h1>
+        <p className="text-gray-500">Loading candidates...</p>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="p-6">
+    <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Candidates</h1>
           <div className="text-sm text-gray-500">
@@ -145,7 +141,6 @@ const CandidateContainer = () => {
           />
         )}
       </div>
-    </Layout>
   );
 };
 

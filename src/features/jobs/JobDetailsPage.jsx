@@ -1,7 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import Layout from "../../components/layouts/Layout";
 import PipelineBoard from "./PipelineBoard";
 
 const JobDetailsPage = () => {
@@ -12,44 +11,41 @@ const JobDetailsPage = () => {
   );
 
   if (!job) {
-    return (
-      <Layout>
-        <p className="text-gray-500">Job not found</p>
-      </Layout>
-    );
+    return <p className="text-gray-500">Job not found</p>;
   }
 
   return (
-    <Layout>
+    <div>
       {/* Job Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">{job.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
         <p className="text-gray-600 mt-1">
           {job.location} • {job.experience}
         </p>
 
         {job.skills?.length > 0 && (
-            <div className="flex gap-2 mt-3 flex-wrap">
-                {job.skills.map((skill) => (
-                    <span 
-                        key={skill} 
-                        className="text-xs bg-gray-100 px-2 py-1 rounded">
-                        {skill}
-                    </span>
-                ))}
-            </div>
+          <div className="flex gap-2 mt-3 flex-wrap">
+            {job.skills.map((skill) => (
+              <span
+                key={skill}
+                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
         )}
       </div>
 
-      {  /* Job Description */}
-      <div className="bg-white p-4 rounded border mb-6">
-            <h2 className="font-semibold mb-2">Job Description</h2>
-            <p className="text-gray-700 text-sm">{job.description}</p>
+      {/* Job Description */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6 shadow-sm">
+        <h2 className="font-semibold mb-2 text-gray-900">Job Description</h2>
+        <p className="text-gray-700 text-sm">{job.description}</p>
       </div>
 
-      {  /* Pipeline */}
+      {/* Pipeline */}
       <PipelineBoard />
-    </Layout>
+    </div>
   );
 };
 

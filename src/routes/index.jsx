@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import Dashboard from "../pages/Dashboard";
+import Analytics from "../pages/Analytics";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
@@ -75,6 +76,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             {user?.role === "INTERVIEWER" ? <InterviewTasksPage /> : <InterviewsContainer />}
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Analytics route */}
+      <Route 
+        path="analytics"
+        element={
+          <ProtectedRoute>
+            <Analytics />
           </ProtectedRoute>
         }
       />
