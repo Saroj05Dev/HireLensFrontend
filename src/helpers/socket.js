@@ -18,3 +18,33 @@ export const disconnectSocket = () => {
     socket = null;
   }
 };
+
+export const onCandidateStageUpdated = (callback) => {
+  if (socket) {
+    socket.on("candidate:stage-updated", callback);
+  }
+};
+
+export const onDecisionCreated = (callback) => {
+  if (socket) {
+    socket.on("decision:created", callback);
+  }
+};
+
+export const onInterviewAssigned = (callback) => {
+  if (socket) {
+    socket.on("interview:assigned", callback);
+  }
+};
+
+export const onFeedbackSubmitted = (callback) => {
+  if (socket) {
+    socket.on("feedback:submitted", callback);
+  }
+};
+
+export const offSocketEvent = (eventName) => {
+  if (socket) {
+    socket.off(eventName);
+  }
+};

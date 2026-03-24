@@ -7,6 +7,7 @@ import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
 import JobsPage from "../features/jobs/jobsPage";
 import JobDetailsPage from "../features/jobs/JobDetailsPage";
+import CandidateContainer from "../features/candidates/CandidateContainer";
 
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useSelector((s) => s.auth);
@@ -53,6 +54,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <JobDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route 
+        path="candidates"
+        element={
+          <ProtectedRoute>
+            <CandidateContainer />
           </ProtectedRoute>
         }
       />
