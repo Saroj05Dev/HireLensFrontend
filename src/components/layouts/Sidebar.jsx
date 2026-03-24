@@ -7,8 +7,9 @@ const Sidebar = () => {
     const links = [
         { to: "/dashboard", label: "Dashboard", roles: ["ADMIN", "RECRUITER"] },
         { to: "/jobs", label: "Jobs", roles: ["ADMIN", "RECRUITER"] },
+        { to: "/candidates", label: "Candidates", roles: ["ADMIN", "RECRUITER"] },
         { to: "/interviews", label: "Interviews", roles: ["INTERVIEWER"] },
-        { to: "/analytics", label: "analytics", roles: ["INTERVIEWER", "ADMIN"] },
+        { to: "/analytics", label: "Analytics", roles: ["INTERVIEWER", "ADMIN"] },
     ]
 
     return (
