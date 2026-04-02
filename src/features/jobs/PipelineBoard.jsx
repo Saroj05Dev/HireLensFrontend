@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { getCandidatesByJob, candidateStageUpdatedRealtime } from "../candidates/candidateSlice";
+import { getCandidatesByJob, candidateStageUpdatedRealtime, updateCandidateStage } from "../candidates/candidateSlice";
 import { onCandidateStageUpdated, offSocketEvent } from "../../helpers/socket";
 import CandidateCard from "../candidates/CandidateCard";
 import AddCandidate from "../candidates/AddCandidate";
@@ -69,9 +69,16 @@ const PipelineBoard = ({ jobTitle }) => {
   const [showAddCandidate, setShowAddCandidate] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [stageFilter, setStageFilter] = useState("ALL");
+  const [dragOverStage, setDragOverStage] = useState(null);
+  const [draggedCandidate, setDraggedCandidate] = useState(null);
+  const [showDropConfirm, setShowDropConfirm] = useState(false);
+  const [dropNote, setDropNote] = useState("");
 
   const candidates = candidatesByJob[jobId] || [];
   const loading = jobCandidatesLoading[jobId];
+  
+  // Check if user can drag candidates (only RECRUITER)
+  const canDragCandidates = user?.role === "RECRUITER";
 
   useEffect(() => {
     if (jobId) {
@@ -101,6 +108,68 @@ const PipelineBoard = ({ jobTitle }) => {
 
   const handleViewProfile = (candidate) => {
     setSelectedCandidate(candidate);
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e, stage) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverStage(stage);
+  };
+
+  const handleDragEnter = (e, stage) => {
+    e.preventDefault();
+    setDragOverStage(stage);
+  };
+
+  const handleDragLeave = (e) => {
+    // Only clear if we're leaving the drop zone entirely
+    if (e.currentTarget === e.target) {
+      setDragOverStage(null);
+    }
+  };
+
+  const handleDrop = (e, newStage) => {
+    e.preventDefault();
+    
+    const candidateId = e.dataTransfer.getData("candidateId");
+    const currentStage = e.dataTransfer.getData("currentStage");
+    
+    setDragOverStage(null);
+    
+    // Don't update if dropping in the same stage
+    if (currentStage === newStage) {
+      return;
+    }
+    
+    // Find the candidate
+    const candidate = candidates.find(c => c._id === candidateId);
+    if (!candidate) return;
+    
+    // Show confirmation modal
+    setDraggedCandidate({ ...candidate, newStage });
+    setShowDropConfirm(true);
+  };
+
+  const handleConfirmDrop = async () => {
+    if (!draggedCandidate) return;
+    
+    await dispatch(updateCandidateStage({
+      candidateId: draggedCandidate._id,
+      newStage: draggedCandidate.newStage,
+      note: dropNote.trim()
+    }));
+    
+    // Reset state
+    setShowDropConfirm(false);
+    setDraggedCandidate(null);
+    setDropNote("");
+  };
+
+  const handleCancelDrop = () => {
+    setShowDropConfirm(false);
+    setDraggedCandidate(null);
+    setDropNote("");
   };
 
   const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
@@ -197,6 +266,7 @@ const PipelineBoard = ({ jobTitle }) => {
           <div className="flex gap-4 overflow-x-auto pb-2">
             {STAGES.map((stage) => {
               const stageCandidates = getCandidatesByStage(stage.key);
+              const isDropZone = dragOverStage === stage.key;
               
               return (
                 <div
@@ -216,12 +286,26 @@ const PipelineBoard = ({ jobTitle }) => {
                     </div>
                   </div>
 
-                  {/* Candidates List */}
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                  {/* Candidates List - Drop Zone */}
+                  <div 
+                    className={`space-y-3 max-h-[600px] overflow-y-auto pr-1 rounded-lg transition-all ${
+                      isDropZone && canDragCandidates
+                        ? "bg-blue-50 border-2 border-blue-400 border-dashed p-2" 
+                        : "border-2 border-transparent p-2"
+                    }`}
+                    onDragOver={(e) => canDragCandidates && handleDragOver(e, stage.key)}
+                    onDragEnter={(e) => canDragCandidates && handleDragEnter(e, stage.key)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => canDragCandidates && handleDrop(e, stage.key)}
+                  >
                     {stageCandidates.length === 0 ? (
-                      <div className="text-xs text-gray-400 text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                      <div className={`text-xs text-gray-400 text-center py-8 rounded-lg border-2 border-dashed ${
+                        isDropZone && canDragCandidates ? "border-blue-400 bg-blue-100" : "border-gray-200 bg-gray-50"
+                      }`}>
                         <svg
-                          className="w-8 h-8 text-gray-300 mx-auto mb-2"
+                          className={`w-8 h-8 mx-auto mb-2 ${
+                            isDropZone && canDragCandidates ? "text-blue-400" : "text-gray-300"
+                          }`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -233,7 +317,7 @@ const PipelineBoard = ({ jobTitle }) => {
                             d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                           />
                         </svg>
-                        No candidates
+                        {isDropZone && canDragCandidates ? "Drop here" : "No candidates"}
                       </div>
                     ) : (
                       stageCandidates.map((candidate) => (
@@ -241,6 +325,7 @@ const PipelineBoard = ({ jobTitle }) => {
                           key={candidate._id}
                           candidate={candidate}
                           onViewProfile={handleViewProfile}
+                          isDraggable={canDragCandidates}
                         />
                       ))
                     )}
@@ -266,6 +351,46 @@ const PipelineBoard = ({ jobTitle }) => {
           candidate={selectedCandidate}
           onClose={() => setSelectedCandidate(null)}
         />
+      )}
+
+      {/* Drop Confirmation Modal */}
+      {showDropConfirm && draggedCandidate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
+            <h3 className="font-semibold text-lg mb-3">
+              Move {draggedCandidate.name} to {draggedCandidate.newStage}?
+            </h3>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              Current stage: <span className="font-medium">{draggedCandidate.currentStage}</span>
+              <br />
+              New stage: <span className="font-medium">{draggedCandidate.newStage}</span>
+            </p>
+            
+            <textarea
+              value={dropNote}
+              onChange={(e) => setDropNote(e.target.value)}
+              placeholder="Add a note about this stage change (optional)"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+            
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={handleCancelDrop}
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDrop}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Confirm Move
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
