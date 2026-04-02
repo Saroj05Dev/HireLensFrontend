@@ -44,7 +44,7 @@ const AppRoutes = () => {
       />
 
       <Route 
-        path="jobs"
+        path="/jobs"
         element={
           <ProtectedRoute>
             <JobsPage />
@@ -53,7 +53,7 @@ const AppRoutes = () => {
       />
 
       <Route 
-        path="jobs/:id"
+        path="/jobs/:id"
         element={
           <ProtectedRoute>
             <JobDetailsPage />
@@ -62,7 +62,7 @@ const AppRoutes = () => {
       />
 
       <Route 
-        path="candidates"
+        path="/candidates"
         element={
           <ProtectedRoute>
             <CandidateContainer />
@@ -72,7 +72,7 @@ const AppRoutes = () => {
 
       {/* Interview routes - role-based */}
       <Route 
-        path="interviews"
+        path="/interviews"
         element={
           <ProtectedRoute>
             {user?.role === "INTERVIEWER" ? <InterviewTasksPage /> : <InterviewsContainer />}
@@ -82,7 +82,7 @@ const AppRoutes = () => {
 
       {/* Analytics route */}
       <Route 
-        path="analytics"
+        path="/analytics"
         element={
           <ProtectedRoute>
             <Analytics />

@@ -9,3 +9,13 @@ export const createJobApi = async (jobData) => {
     const res = await axiosInstance.post('/jobs', jobData);
     return res.data.data;
 }
+
+export const closeJobApi = async (jobId) => {
+    const res = await axiosInstance.patch(`/jobs/${jobId}/close`);
+    return res.data.data;
+}
+
+export const reopenJobApi = async (jobId) => {
+    const res = await axiosInstance.patch(`/jobs/${jobId}/reopen`);
+    return res.data.data;
+}

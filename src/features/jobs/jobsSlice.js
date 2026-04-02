@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createJobApi, fetchJobsApi } from "./jobs.api.js";
+import { createJobApi, fetchJobsApi, closeJobApi, reopenJobApi } from "./jobs.api.js";
 
 export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",
@@ -18,6 +18,30 @@ export const createJob = createAsyncThunk(
   async (jobData, { rejectWithValue }) => {
     try {
       const res = await createJobApi(jobData);
+      return res;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message);
+    }
+  },
+);
+
+export const closeJob = createAsyncThunk(
+  "jobs/closeJob",
+  async (jobId, { rejectWithValue }) => {
+    try {
+      const res = await closeJobApi(jobId);
+      return res;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message);
+    }
+  },
+);
+
+export const reopenJob = createAsyncThunk(
+  "jobs/reopenJob",
+  async (jobId, { rejectWithValue }) => {
+    try {
+      const res = await reopenJobApi(jobId);
       return res;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message);
@@ -48,6 +72,18 @@ const jobSlice = createSlice({
       })
       .addCase(createJob.fulfilled, (state, action) => {
         state.list.unshift(action.payload);
+      })
+      .addCase(closeJob.fulfilled, (state, action) => {
+        const index = state.list.findIndex(job => job.id === action.payload.id);
+        if (index !== -1) {
+          state.list[index] = action.payload;
+        }
+      })
+      .addCase(reopenJob.fulfilled, (state, action) => {
+        const index = state.list.findIndex(job => job.id === action.payload.id);
+        if (index !== -1) {
+          state.list[index] = action.payload;
+        }
       });
     },
 });
