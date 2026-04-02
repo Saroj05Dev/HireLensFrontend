@@ -40,7 +40,7 @@ export const getCandidateProfileApi = async (candidateId) => {
 
 // Get candidate decision logs
 export const getCandidateDecisionLogsApi = async (candidateId) => {
-  const response = await axiosInstance.get(`/candidates/${candidateId}/logs`);
+  const response = await axiosInstance.get(`/candidates/${candidateId}/decision-logs`);
   return response.data.data;
 };
 
