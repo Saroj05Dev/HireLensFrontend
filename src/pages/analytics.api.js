@@ -15,6 +15,11 @@ export const getTimeToHireApi = async (jobId) => {
   return response.data.data;
 };
 
+export const getOrganizationTimeToHireApi = async () => {
+  const response = await axiosInstance.get("/analytics/organization/time-to-hire");
+  return response.data.data;
+};
+
 export const getCandidateTimeInStageApi = async (candidateId) => {
   const response = await axiosInstance.get(`/analytics/candidates/${candidateId}/time-in-stage`);
   return response.data.data;

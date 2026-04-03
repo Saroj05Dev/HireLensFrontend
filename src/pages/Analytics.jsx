@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { 
   getJobFunnelApi, 
-  getTimeToHireApi 
+  getTimeToHireApi,
+  getOrganizationTimeToHireApi
 } from "./analytics.api";
 import { getCandidatesByStageApi } from "./dashboard.api";
 import { fetchJobs } from "../features/jobs/jobsSlice";
@@ -25,7 +26,8 @@ const Analytics = () => {
   const [candidatesByStage, setCandidatesByStage] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [jobFunnel, setJobFunnel] = useState(null);
-  const [timeToHire, setTimeToHire] = useState(null);
+  const [jobTimeToHire, setJobTimeToHire] = useState(null);
+  const [orgTimeToHire, setOrgTimeToHire] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -43,8 +45,12 @@ const Analytics = () => {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const stageData = await getCandidatesByStageApi();
+      const [stageData, timeData] = await Promise.all([
+        getCandidatesByStageApi(),
+        getOrganizationTimeToHireApi()
+      ]);
       setCandidatesByStage(stageData);
+      setOrgTimeToHire(timeData);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load analytics");
@@ -61,7 +67,7 @@ const Analytics = () => {
       ]);
       
       setJobFunnel(funnelData);
-      setTimeToHire(timeData);
+      setJobTimeToHire(timeData);
     } catch (err) {
       console.error("Failed to fetch job analytics:", err);
     }
@@ -193,7 +199,7 @@ const Analytics = () => {
             </svg>
           </div>
           <p className="text-3xl font-bold text-purple-600">
-            {timeToHire?.averageTimeToHireDays || "-"}
+            {orgTimeToHire?.averageTimeToHireDays || "-"}
           </p>
           <p className="text-xs text-gray-500 mt-1">days on average</p>
         </div>
@@ -359,7 +365,7 @@ const Analytics = () => {
           >
             <option value="">Select a job</option>
             {jobs.map((job) => (
-              <option key={job._id} value={job._id}>
+              <option key={job.id} value={job.id}>
                 {job.title}
               </option>
             ))}
@@ -396,19 +402,19 @@ const Analytics = () => {
             {/* Time to Hire */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-4">Time to Hire</h3>
-              {timeToHire && timeToHire.hires.length > 0 ? (
+              {jobTimeToHire && jobTimeToHire.hires.length > 0 ? (
                 <div>
                   <div className="p-6 bg-purple-50 rounded-lg border border-purple-200 mb-4">
                     <p className="text-sm text-purple-700 mb-1">Average Time to Hire</p>
                     <p className="text-4xl font-bold text-purple-900">
-                      {timeToHire.averageTimeToHireDays}
+                      {jobTimeToHire.averageTimeToHireDays}
                       <span className="text-lg ml-2">days</span>
                     </p>
                   </div>
                   
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase">Individual Hires</p>
-                    {timeToHire.hires.map((hire, index) => (
+                    {jobTimeToHire.hires.map((hire, index) => (
                       <div key={hire.candidateId} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                         <span className="text-sm text-gray-600">Candidate {index + 1}</span>
                         <span className="text-sm font-medium text-gray-900">{hire.timeToHireDays} days</span>
