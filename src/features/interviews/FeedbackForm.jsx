@@ -3,9 +3,36 @@ import { useDispatch, useSelector } from "react-redux";
 import { submitFeedback } from "./interviewSlice";
 
 const RECOMMENDATION_OPTIONS = [
-  { value: "PROCEED", label: "Proceed to next round", color: "bg-green-50 border-green-200 text-green-700", icon: "✓" },
-  { value: "HOLD", label: "Maybe - needs discussion", color: "bg-yellow-50 border-yellow-200 text-yellow-700", icon: "⚠" },
-  { value: "REJECT", label: "Do not proceed", color: "bg-red-50 border-red-200 text-red-700", icon: "✕" },
+  { 
+    value: "PROCEED", 
+    label: "Proceed to next round", 
+    color: "bg-green-50 border-green-200 text-green-700", 
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    )
+  },
+  { 
+    value: "HOLD", 
+    label: "Maybe - needs discussion", 
+    color: "bg-yellow-50 border-yellow-200 text-yellow-700", 
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    )
+  },
+  { 
+    value: "REJECT", 
+    label: "Do not proceed", 
+    color: "bg-red-50 border-red-200 text-red-700", 
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    )
+  },
 ];
 
 const FeedbackForm = ({ interview, onClose }) => {
@@ -196,7 +223,7 @@ const FeedbackForm = ({ interview, onClose }) => {
                       {option.label}
                     </span>
                   </div>
-                  <span className="text-xl">{option.icon}</span>
+                  <div className="text-current">{option.icon}</div>
                 </label>
               ))}
             </div>
