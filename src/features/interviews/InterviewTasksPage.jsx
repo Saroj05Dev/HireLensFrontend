@@ -237,7 +237,7 @@ const InterviewTasksPage = () => {
           ) : (
             <div className="space-y-4">
               {displayedInterviews.map((interview) => {
-                const hasFeedback = feedbackByInterview[interview._id];
+                const hasFeedback = feedbackByInterview[interview._id] || interview.status === "COMPLETED";
                 
                 return (
                   <div
