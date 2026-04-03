@@ -90,7 +90,9 @@ const InterviewsContainer = () => {
                 <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
               </div>
               <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                <span className="text-yellow-600 text-sm">⏳</span>
+                <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -116,7 +118,9 @@ const InterviewsContainer = () => {
                 <p className="text-2xl font-bold text-blue-600">{interviews.length}</p>
               </div>
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 text-sm">📋</span>
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
               </div>
             </div>
           </div>

@@ -22,7 +22,7 @@ const InterviewCard = ({ interview, onSubmitFeedback, onViewFeedback, showCandid
   // Handle both user.id and user._id
   const userId = user?.id || user?._id;
   const isMyInterview = interviewerId === userId;
-  const hasFeedback = feedbackByInterview[interview._id];
+  const hasFeedback = feedbackByInterview[interview._id] || interview.status === "COMPLETED";
   const canSubmitFeedback = isInterviewer && isMyInterview && interview.status === "ASSIGNED";
 
   const formatDate = (dateString) => {

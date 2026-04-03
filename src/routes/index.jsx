@@ -92,7 +92,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Interview routes - INTERVIEWER only */}
+      {/* Interview routes - Role-based views */}
       <Route 
         path="/interviews"
         element={
@@ -100,7 +100,7 @@ const AppRoutes = () => {
             {user?.role === "INTERVIEWER" ? (
               <InterviewTasksPage />
             ) : (
-              <Navigate to="/dashboard" replace />
+              <InterviewsContainer />
             )}
           </ProtectedRoute>
         }
