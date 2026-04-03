@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchJobs, closeJob, reopenJob } from "./jobsSlice";
+import { fetchJobs, closeJob, reopenJob, deleteJob } from "./jobsSlice";
 import PipelineBoard from "./PipelineBoard";
+import EditJob from "./EditJob";
 
 const JobDetailsPage = () => {
   const { id } = useParams();
@@ -12,6 +13,8 @@ const JobDetailsPage = () => {
   const { list: jobs, loading } = useSelector((state) => state.jobs);
   const { user } = useSelector((state) => state.auth);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (!jobs.length) {
@@ -38,6 +41,19 @@ const JobDetailsPage = () => {
         alert(error || `Failed to ${action} job`);
       } finally {
         setIsUpdating(false);
+      }
+    }
+  };
+
+  const handleDeleteJob = async () => {
+    if (window.confirm(`Are you sure you want to delete "${job.title}"? This action cannot be undone.`)) {
+      setIsDeleting(true);
+      try {
+        await dispatch(deleteJob(job.id)).unwrap();
+        navigate("/jobs");
+      } catch (error) {
+        alert(error || "Failed to delete job");
+        setIsDeleting(false);
       }
     }
   };
@@ -179,9 +195,7 @@ const JobDetailsPage = () => {
           {canManageJob && (
             <div className="flex gap-2">
               <button 
-                onClick={() => {
-                  alert("Edit job functionality will be implemented in the next phase. For now, you can create a new job with updated details.");
-                }}
+                onClick={() => setShowEditModal(true)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,7 +205,7 @@ const JobDetailsPage = () => {
               </button>
               <button
                 onClick={handleToggleJobStatus}
-                disabled={isUpdating}
+                disabled={isUpdating || isDeleting}
                 className={`px-4 py-2 rounded-lg transition-colors text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                   job.status === "OPEN"
                     ? "bg-gray-600 text-white hover:bg-gray-700"
@@ -216,6 +230,25 @@ const JobDetailsPage = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Reopen Job
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleDeleteJob}
+                disabled={isUpdating || isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Job
                   </>
                 )}
               </button>
@@ -251,6 +284,14 @@ const JobDetailsPage = () => {
 
       {/* Pipeline Board */}
       <PipelineBoard jobTitle={job.title} />
+
+      {/* Edit Job Modal */}
+      {showEditModal && (
+        <EditJob 
+          job={job} 
+          onClose={() => setShowEditModal(false)} 
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createJobApi, fetchJobsApi, closeJobApi, reopenJobApi } from "./jobs.api.js";
+import { createJobApi, fetchJobsApi, updateJobApi, closeJobApi, reopenJobApi, deleteJobApi } from "./jobs.api.js";
 
 export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",
@@ -19,6 +19,30 @@ export const createJob = createAsyncThunk(
     try {
       const res = await createJobApi(jobData);
       return res;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message);
+    }
+  },
+);
+
+export const updateJob = createAsyncThunk(
+  "jobs/updateJob",
+  async ({ jobId, jobData }, { rejectWithValue }) => {
+    try {
+      const res = await updateJobApi(jobId, jobData);
+      return res;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message);
+    }
+  },
+);
+
+export const deleteJob = createAsyncThunk(
+  "jobs/deleteJob",
+  async (jobId, { rejectWithValue }) => {
+    try {
+      const res = await deleteJobApi(jobId);
+      return { ...res, jobId };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message);
     }
@@ -72,6 +96,15 @@ const jobSlice = createSlice({
       })
       .addCase(createJob.fulfilled, (state, action) => {
         state.list.unshift(action.payload);
+      })
+      .addCase(updateJob.fulfilled, (state, action) => {
+        const index = state.list.findIndex(job => job.id === action.payload.id);
+        if (index !== -1) {
+          state.list[index] = action.payload;
+        }
+      })
+      .addCase(deleteJob.fulfilled, (state, action) => {
+        state.list = state.list.filter(job => job.id !== action.payload.jobId);
       })
       .addCase(closeJob.fulfilled, (state, action) => {
         const index = state.list.findIndex(job => job.id === action.payload.id);
