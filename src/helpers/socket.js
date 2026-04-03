@@ -8,7 +8,18 @@ export const connectSocket = ({ userId, organizationId }) => {
   });
 
   socket.on("connect", () => {
-    socket.emit("join", { userId, organizationId });
+    console.log("Socket connected:", socket.id);
+    // Join both user and organization rooms
+    socket.emit("join:user", userId);
+    socket.emit("join:organization", organizationId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected");
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error("Socket connection error:", error);
   });
 };
 
@@ -40,6 +51,12 @@ export const onInterviewAssigned = (callback) => {
 export const onFeedbackSubmitted = (callback) => {
   if (socket) {
     socket.on("feedback:submitted", callback);
+  }
+};
+
+export const onNotificationReceived = (callback) => {
+  if (socket) {
+    socket.on("notification:new", callback);
   }
 };
 

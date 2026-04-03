@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { logout } from '../../features/auth/authSlice';
 import { getAllCandidates } from '../../features/candidates/candidateSlice';
 import { fetchJobs } from '../../features/jobs/jobsSlice';
+import { getUnreadCount, selectUnreadCount } from '../../features/notifications/notificationSlice';
+import NotificationDropdown from '../notifications/NotificationDropdown';
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -11,6 +13,7 @@ const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
   const { list: candidates } = useSelector((state) => state.candidates);
   const { list: jobs } = useSelector((state) => state.jobs);
+  const unreadCount = useSelector(selectUnreadCount);
   
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -30,6 +33,8 @@ const Navbar = () => {
     if (jobs.length === 0) {
       dispatch(fetchJobs());
     }
+    // Fetch unread notification count
+    dispatch(getUnreadCount());
   }, [dispatch, candidates.length, jobs.length]);
 
   // Close dropdowns when clicking outside
@@ -255,25 +260,18 @@ const Navbar = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             {/* Notification badge */}
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* Notifications Dropdown */}
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-              <div className="p-4 border-b border-gray-100">
-                <h3 className="font-semibold text-gray-900">Notifications</h3>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                <div className="p-8 text-center text-gray-500 text-sm">
-                  <svg className="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  <p>No new notifications</p>
-                </div>
-              </div>
-            </div>
-          )}
+          <NotificationDropdown 
+            isOpen={showNotifications} 
+            onClose={() => setShowNotifications(false)} 
+          />
         </div>
 
         {/* User Menu */}

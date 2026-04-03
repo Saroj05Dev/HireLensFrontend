@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { getAllInterviewsApi } from "./interview.api";
+import { onInterviewAssigned, onFeedbackSubmitted, offSocketEvent } from "../../helpers/socket";
 import FeedbackViewer from "./FeedbackViewer";
 
 const STATUS_FILTERS = [
@@ -38,6 +39,35 @@ const InterviewsContainer = () => {
     };
 
     fetchInterviews();
+  }, [filters]);
+
+  // Set up real-time listeners for interview updates
+  useEffect(() => {
+    const handleInterviewAssigned = (data) => {
+      // Refetch interviews when a new one is assigned
+      getAllInterviewsApi(filters).then(data => {
+        setInterviews(data);
+      }).catch(err => {
+        console.error("Failed to refresh interviews:", err);
+      });
+    };
+
+    const handleFeedbackSubmitted = (data) => {
+      // Update the specific interview status
+      setInterviews(prev => prev.map(interview => 
+        interview._id === data.interviewId 
+          ? { ...interview, status: "COMPLETED" }
+          : interview
+      ));
+    };
+
+    onInterviewAssigned(handleInterviewAssigned);
+    onFeedbackSubmitted(handleFeedbackSubmitted);
+
+    return () => {
+      offSocketEvent("interview:assigned");
+      offSocketEvent("feedback:submitted");
+    };
   }, [filters]);
 
   const handleFilterChange = (key, value) => {

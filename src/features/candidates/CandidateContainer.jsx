@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllCandidates } from "./candidateSlice";
+import { getAllCandidates, candidateStageUpdatedRealtime } from "./candidateSlice";
 import { fetchJobs } from "../jobs/jobsSlice";
+import { onCandidateStageUpdated, offSocketEvent } from "../../helpers/socket";
 import CandidateCard from "./CandidateCard";
 import CandidateProfile from "./CandidateProfile";
 
@@ -33,6 +34,19 @@ const CandidateContainer = () => {
     dispatch(getAllCandidates(filters));
     dispatch(fetchJobs());
   }, [dispatch, filters]);
+
+  // Set up real-time listener for candidate stage updates
+  useEffect(() => {
+    const handleCandidateStageUpdate = (data) => {
+      dispatch(candidateStageUpdatedRealtime(data));
+    };
+
+    onCandidateStageUpdated(handleCandidateStageUpdate);
+
+    return () => {
+      offSocketEvent("candidate:stage-updated");
+    };
+  }, [dispatch]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({
