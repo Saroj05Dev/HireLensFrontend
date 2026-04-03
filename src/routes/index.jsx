@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 
 import Dashboard from "../pages/Dashboard";
 import Analytics from "../pages/Analytics";
+import TeamPage from "../pages/TeamPage";
+import AcceptInvitePage from "../pages/AcceptInvitePage";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
@@ -38,6 +40,9 @@ const AppRoutes = () => {
           !isAuthenticated ? <Login /> : <Navigate to={getDefaultRoute()} />
         }
       />
+      
+      {/* Public invite acceptance route */}
+      <Route path="/invite/:token" element={<AcceptInvitePage />} />
 
       {/* Protected routes - Dashboard (ADMIN & RECRUITER only) */}
       <Route
@@ -115,6 +120,20 @@ const AppRoutes = () => {
               <Navigate to="/interviews" replace />
             ) : (
               <Analytics />
+            )}
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Team Management route - ADMIN only */}
+      <Route 
+        path="/team"
+        element={
+          <ProtectedRoute>
+            {user?.role !== "ADMIN" ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <TeamPage />
             )}
           </ProtectedRoute>
         }

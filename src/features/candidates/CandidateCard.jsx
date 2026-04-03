@@ -132,14 +132,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
 
             <div className="relative">
               <button
-                onClick={() => setShowStageMenu(!showStageMenu)}
-                disabled={isUpdating}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} hover:opacity-80 disabled:opacity-50`}
+                onClick={() => !isDraggable && setShowStageMenu(!showStageMenu)}
+                disabled={isUpdating || isDraggable}
+                className={`text-xs px-3 py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
+                  isDraggable ? "cursor-default" : "hover:opacity-80"
+                } disabled:opacity-50`}
               >
                 {isUpdating ? "..." : candidate.currentStage}
               </button>
               
-              {showStageMenu && (
+              {showStageMenu && !isDraggable && (
                 <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-36">
                   {STAGES.map((stage) => (
                     <button
@@ -265,14 +267,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
           
           <div className="relative shrink-0 ml-2">
             <button
-              onClick={() => setShowStageMenu(!showStageMenu)}
-              disabled={isUpdating}
-              className={`text-xs px-2 py-1 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} hover:opacity-80 disabled:opacity-50`}
+              onClick={() => !isDraggable && setShowStageMenu(!showStageMenu)}
+              disabled={isUpdating || isDraggable}
+              className={`text-xs px-2 py-1 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
+                isDraggable ? "cursor-default" : "hover:opacity-80"
+              } disabled:opacity-50`}
             >
               {isUpdating ? "..." : candidate.currentStage}
             </button>
             
-            {showStageMenu && (
+            {showStageMenu && !isDraggable && (
               <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-32">
                 {STAGES.map((stage) => (
                   <button

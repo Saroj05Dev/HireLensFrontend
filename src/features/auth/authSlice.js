@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../helpers/axiosInstance";
 import { connectSocket, disconnectSocket } from "../../helpers/socket";
 import { loginApi, signupApi } from "./auth.api";
+import { acceptInviteApi } from "../team/team.api";
 
 // FetchMe
 export const fetchMe = createAsyncThunk(
@@ -42,6 +43,22 @@ export const login = createAsyncThunk(
     try {
       await loginApi(formData);
       return true;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Something went wrong"
+      );
+    }
+  }
+);
+
+// Accept Invite
+
+export const acceptInvite = createAsyncThunk(
+  "auth/acceptInvite",
+  async ({ token, name, password }, { rejectWithValue }) => {
+    try {
+      const res = await acceptInviteApi({ token, name, password });
+      return res;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Something went wrong"
@@ -95,10 +112,17 @@ const authSlice = createSlice({
         state.authLoading = true;
         state.authError = null;
       })
+      .addCase(acceptInvite.pending, (state) => {
+        state.authLoading = true;
+        state.authError = null;
+      })
       .addCase(signup.fulfilled, (state) => {
         state.authLoading = false;
       })
       .addCase(login.fulfilled, (state) => {
+        state.authLoading = false;
+      })
+      .addCase(acceptInvite.fulfilled, (state) => {
         state.authLoading = false;
       })
       .addCase(signup.rejected, (state, action) => {
@@ -106,6 +130,10 @@ const authSlice = createSlice({
         state.authError = action.payload;
       })
       .addCase(login.rejected, (state, action) => {
+        state.authLoading = false;
+        state.authError = action.payload;
+      })
+      .addCase(acceptInvite.rejected, (state, action) => {
         state.authLoading = false;
         state.authError = action.payload;
       });
