@@ -14,8 +14,18 @@ const Login = () => {
     const res = await dispatch(login(data));
 
     if (login.fulfilled.match(res)) {
-      await dispatch(fetchMe());
-      navigate("/dashboard");
+      const userRes = await dispatch(fetchMe());
+      
+      // Redirect based on role
+      if (fetchMe.fulfilled.match(userRes)) {
+        const userRole = userRes.payload.role;
+        
+        if (userRole === "INTERVIEWER") {
+          navigate("/interviews");
+        } else {
+          navigate("/dashboard");
+        }
+      }
     }
   };
 

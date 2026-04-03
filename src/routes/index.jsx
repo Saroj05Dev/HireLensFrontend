@@ -17,28 +17,38 @@ const AppRoutes = () => {
 
   if (loading) return null;
 
+  // Determine default route based on role
+  const getDefaultRoute = () => {
+    if (!isAuthenticated) return "/signup";
+    return user?.role === "INTERVIEWER" ? "/interviews" : "/dashboard";
+  };
+
   return (
     <Routes>
       {/* Public routes */}
       <Route
         path="/signup"
         element={
-          !isAuthenticated ? <Signup /> : <Navigate to="/dashboard" />
+          !isAuthenticated ? <Signup /> : <Navigate to={getDefaultRoute()} />
         }
       />
       <Route
         path="/login"
         element={
-          !isAuthenticated ? <Login /> : <Navigate to="/dashboard" />
+          !isAuthenticated ? <Login /> : <Navigate to={getDefaultRoute()} />
         }
       />
 
-      {/* Protected routes */}
+      {/* Protected routes - Dashboard (ADMIN & RECRUITER only) */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            {user?.role === "INTERVIEWER" ? (
+              <Navigate to="/interviews" replace />
+            ) : (
+              <Dashboard />
+            )}
           </ProtectedRoute>
         }
       />
@@ -47,7 +57,11 @@ const AppRoutes = () => {
         path="/jobs"
         element={
           <ProtectedRoute>
-            <JobsPage />
+            {user?.role === "INTERVIEWER" ? (
+              <Navigate to="/interviews" replace />
+            ) : (
+              <JobsPage />
+            )}
           </ProtectedRoute>
         }
       />
@@ -56,7 +70,11 @@ const AppRoutes = () => {
         path="/jobs/:id"
         element={
           <ProtectedRoute>
-            <JobDetailsPage />
+            {user?.role === "INTERVIEWER" ? (
+              <Navigate to="/interviews" replace />
+            ) : (
+              <JobDetailsPage />
+            )}
           </ProtectedRoute>
         }
       />
@@ -65,27 +83,39 @@ const AppRoutes = () => {
         path="/candidates"
         element={
           <ProtectedRoute>
-            <CandidateContainer />
+            {user?.role === "INTERVIEWER" ? (
+              <Navigate to="/interviews" replace />
+            ) : (
+              <CandidateContainer />
+            )}
           </ProtectedRoute>
         }
       />
 
-      {/* Interview routes - role-based */}
+      {/* Interview routes - INTERVIEWER only */}
       <Route 
         path="/interviews"
         element={
           <ProtectedRoute>
-            {user?.role === "INTERVIEWER" ? <InterviewTasksPage /> : <InterviewsContainer />}
+            {user?.role === "INTERVIEWER" ? (
+              <InterviewTasksPage />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )}
           </ProtectedRoute>
         }
       />
 
-      {/* Analytics route */}
+      {/* Analytics route - ADMIN & RECRUITER only */}
       <Route 
         path="/analytics"
         element={
           <ProtectedRoute>
-            <Analytics />
+            {user?.role === "INTERVIEWER" ? (
+              <Navigate to="/interviews" replace />
+            ) : (
+              <Analytics />
+            )}
           </ProtectedRoute>
         }
       />
@@ -94,9 +124,7 @@ const AppRoutes = () => {
       <Route
         path="*"
         element={
-          <Navigate
-            to={isAuthenticated ? "/dashboard" : "/signup"}
-          />
+          <Navigate to={getDefaultRoute()} replace />
         }
       />
     </Routes>
