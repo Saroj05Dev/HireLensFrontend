@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { getCandidatesByJob, candidateStageUpdatedRealtime, updateCandidateStage } from "../candidates/candidateSlice";
@@ -87,8 +87,25 @@ const PipelineBoard = ({ jobTitle }) => {
   const candidates = candidatesByJob[jobId] || [];
   const loading = jobCandidatesLoading[jobId];
   
-  // Check if user can drag candidates (only RECRUITER)
-  const canDragCandidates = user?.role === "RECRUITER";
+  // Detect if user is on mobile (screen width < 768px)
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Check if user can drag candidates (only RECRUITER and not on mobile)
+  const canDragCandidates = user?.role === "RECRUITER" && !isMobile;
+  
+  // Check if user can manage candidates (RECRUITER on any device)
+  const canManageCandidatesAnyDevice = user?.role === "RECRUITER";
 
   useEffect(() => {
     if (jobId) {
@@ -119,6 +136,8 @@ const PipelineBoard = ({ jobTitle }) => {
   const handleViewProfile = (candidate) => {
     setSelectedCandidate(candidate);
   };
+
+  const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
 
   // Drag and drop handlers
   const handleDragOver = (e, stage) => {
@@ -181,8 +200,6 @@ const PipelineBoard = ({ jobTitle }) => {
     setDraggedCandidate(null);
     setDropNote("");
   };
-
-  const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
 
   // Calculate stats
   const totalCandidates = candidates.length;
@@ -336,6 +353,7 @@ const PipelineBoard = ({ jobTitle }) => {
                           candidate={candidate}
                           onViewProfile={handleViewProfile}
                           isDraggable={canDragCandidates}
+                          showStageSelector={canManageCandidatesAnyDevice}
                         />
                       ))
                     )}

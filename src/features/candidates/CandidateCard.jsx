@@ -21,7 +21,7 @@ const STAGE_COLORS = {
   REJECTED: "bg-red-100 text-red-700"
 };
 
-const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode = "grid" }) => {
+const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStageSelector = false, viewMode = "grid" }) => {
   const dispatch = useDispatch();
   const { stageUpdateLoading } = useSelector((state) => state.candidates);
   const { user } = useSelector((state) => state.auth);
@@ -35,6 +35,9 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
 
   const isUpdating = stageUpdateLoading[candidate._id];
   const canAssignInterview = user?.role === "RECRUITER" && candidate.currentStage === "SCREENING";
+  
+  // Enable stage selector if showStageSelector is true OR if not draggable
+  const canChangeStage = showStageSelector || !isDraggable;
 
   const getInitials = (name) => {
     return name
@@ -132,16 +135,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
 
             <div className="relative">
               <button
-                onClick={() => !isDraggable && setShowStageMenu(!showStageMenu)}
-                disabled={isUpdating || isDraggable}
+                onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
+                disabled={isUpdating || !canChangeStage}
                 className={`text-xs px-3 py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
-                  isDraggable ? "cursor-default" : "hover:opacity-80"
+                  canChangeStage ? "hover:opacity-80 cursor-pointer" : "cursor-default"
                 } disabled:opacity-50`}
               >
                 {isUpdating ? "..." : candidate.currentStage}
               </button>
               
-              {showStageMenu && !isDraggable && (
+              {showStageMenu && canChangeStage && (
                 <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-36">
                   {STAGES.map((stage) => (
                     <button
@@ -195,9 +198,9 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
         )}
 
         {showNoteInput && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
-              <h3 className="font-semibold text-lg mb-3">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
+              <h3 className="font-semibold text-base md:text-lg mb-3">
                 Move {candidate.name} to {selectedStage}
               </h3>
               
@@ -205,21 +208,21 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Add a note (optional)"
-                className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
               
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
                 <button
                   onClick={cancelStageUpdate}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleStageUpdate}
                   disabled={isUpdating}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                   {isUpdating ? "Updating..." : "Update Stage"}
                 </button>
@@ -267,16 +270,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
           
           <div className="relative shrink-0 ml-2">
             <button
-              onClick={() => !isDraggable && setShowStageMenu(!showStageMenu)}
-              disabled={isUpdating || isDraggable}
+              onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
+              disabled={isUpdating || !canChangeStage}
               className={`text-xs px-2 py-1 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
-                isDraggable ? "cursor-default" : "hover:opacity-80"
+                canChangeStage ? "hover:opacity-80 cursor-pointer" : "cursor-default"
               } disabled:opacity-50`}
             >
               {isUpdating ? "..." : candidate.currentStage}
             </button>
             
-            {showStageMenu && !isDraggable && (
+            {showStageMenu && canChangeStage && (
               <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-32">
                 {STAGES.map((stage) => (
                   <button
@@ -335,9 +338,9 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
       )}
 
       {showNoteInput && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
-            <h3 className="font-semibold text-lg mb-3">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
+            <h3 className="font-semibold text-base md:text-lg mb-3">
               Move {candidate.name} to {selectedStage}
             </h3>
             
@@ -345,21 +348,21 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, viewMode
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Add a note (optional)"
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={3}
             />
             
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
               <button
                 onClick={cancelStageUpdate}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleStageUpdate}
                 disabled={isUpdating}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
                 {isUpdating ? "Updating..." : "Update Stage"}
               </button>
