@@ -159,7 +159,7 @@ const EditJob = ({ job, onClose }) => {
             <input
               {...register("location", { required: "Location is required" })}
               type="text"
-              placeholder="e.g., San Francisco, CA or Remote"
+              placeholder="e.g., Bangalore, Mumbai, or Remote"
               className="w-full border-2 border-gray-300 px-3 md:px-4 py-2 md:py-2.5 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             {errors.location && (

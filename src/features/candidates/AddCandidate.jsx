@@ -80,7 +80,7 @@ const AddCandidate = ({ jobId, onClose }) => {
                   </div>
                   <input
                     {...register("name", { required: "Name is required" })}
-                    placeholder="e.g., John Doe"
+                    placeholder="e.g., Rahul Sharma"
                     className="w-full border-2 border-gray-300 pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -113,7 +113,7 @@ const AddCandidate = ({ jobId, onClose }) => {
                         message: "Invalid email address"
                       }
                     })}
-                    placeholder="e.g., john.doe@example.com"
+                    placeholder="e.g., rahul.sharma@example.com"
                     type="email"
                     className="w-full border-2 border-gray-300 pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -141,7 +141,7 @@ const AddCandidate = ({ jobId, onClose }) => {
                   </div>
                   <input
                     {...register("phone")}
-                    placeholder="e.g., +1 (555) 123-4567"
+                    placeholder="e.g., +91 98765 43210"
                     className="w-full border-2 border-gray-300 pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>

@@ -112,7 +112,7 @@ const Signup = () => {
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
                       : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                   }`}
-                  placeholder="John Doe"
+                  placeholder="Priya Patel"
                 />
               </div>
               {errors.name && (
@@ -151,7 +151,7 @@ const Signup = () => {
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
                       : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                   }`}
-                  placeholder="you@company.com"
+                  placeholder="priya@company.com"
                 />
               </div>
               {errors.email && (

@@ -280,7 +280,7 @@ const InviteUserModal = () => {
                     setEmail(e.target.value);
                     setEmailError("");
                   }}
-                  placeholder="user@example.com"
+                  placeholder="priya.patel@company.com"
                   className={`w-full border-2 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
                     emailError
                       ? "border-red-300 bg-red-50"
