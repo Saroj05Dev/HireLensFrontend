@@ -9,7 +9,7 @@ import ProfilePage from "../pages/ProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
-import JobsPage from "../features/jobs/jobsPage";
+import JobsPage from "../features/jobs/JobsPage";
 import JobDetailsPage from "../features/jobs/JobDetailsPage";
 import CandidateContainer from "../features/candidates/CandidateContainer";
 import InterviewTasksPage from "../features/interviews/InterviewTasksPage";
