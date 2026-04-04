@@ -363,16 +363,24 @@ const CandidateProfile = ({ candidate, onClose }) => {
                             </span>
                           </div>
                           {log.action === "STAGE_CHANGE" && (
-                            <div className="flex items-center gap-2 mt-3">
-                              <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.from]}`}>
-                                {log.from}
-                              </span>
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                              </svg>
-                              <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.to]}`}>
-                                {log.to}
-                              </span>
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.from]}`}>
+                                  {log.from}
+                                </span>
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                                <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.to]}`}>
+                                  {log.to}
+                                </span>
+                              </div>
+                              {log.note && (
+                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Reason</p>
+                                  <p className="text-sm text-gray-700">{log.note}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

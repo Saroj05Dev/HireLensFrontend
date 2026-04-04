@@ -70,7 +70,7 @@ const Sidebar = () => {
   const visibleMenuItems = menuItems.filter((item) => item.roles.includes(role));
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
+    <aside className="hidden md:flex w-64 bg-slate-900 border-r border-slate-800 flex-col">
       {/* Sidebar Header */}
       <div className="p-4 border-b border-slate-800">
         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
