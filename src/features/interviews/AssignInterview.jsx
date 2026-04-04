@@ -78,10 +78,10 @@ const AssignInterview = ({ candidate, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col"
+        className="bg-white rounded-xl w-full max-w-2xl max-h-[85vh] md:max-h-[90vh] shadow-2xl overflow-hidden flex flex-col"
       >
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4">
           <div className="flex items-center justify-between">

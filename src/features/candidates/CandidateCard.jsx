@@ -223,7 +223,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
         )}
 
         {showNoteInput && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
             <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
               <h3 className="font-semibold text-base md:text-lg mb-3">
                 Move {candidate.name} to {selectedStage}
@@ -389,7 +389,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
       )}
 
       {showNoteInput && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
             <h3 className="font-semibold text-base md:text-lg mb-3">
               Move {candidate.name} to {selectedStage}

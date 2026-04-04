@@ -118,8 +118,8 @@ const CandidateProfile = ({ candidate, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
+      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         <div className="bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-200 p-4 md:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 md:gap-4 mb-3 md:mb-4">
             <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0 w-full sm:w-auto">

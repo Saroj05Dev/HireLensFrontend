@@ -71,12 +71,15 @@ const Navbar = () => {
     <header className="h-14 md:h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-3 md:px-6 shadow-sm">
       {/* Left - Logo & Org */}
       <div className="flex items-center gap-2 md:gap-6">
-        <div className="flex items-center gap-2">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-xs md:text-sm">HL</span>
           </div>
           <span className="font-semibold text-lg md:text-xl text-white">HireLens</span>
-        </div>
+        </button>
         
         {/* Organization Name - Hidden on small screens */}
         {user?.organizationName && (

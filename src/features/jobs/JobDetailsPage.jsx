@@ -303,7 +303,7 @@ const JobDetailsPage = () => {
 
       {/* Close/Reopen Confirmation Modal */}
       {showCloseConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white rounded-lg w-full max-w-md shadow-xl">
             <div className="p-4 md:p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -361,7 +361,7 @@ const JobDetailsPage = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white rounded-lg w-full max-w-md shadow-xl">
             <div className="p-4 md:p-6">
               <div className="flex items-center gap-3 mb-4">
