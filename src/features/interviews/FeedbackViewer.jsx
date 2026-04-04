@@ -68,7 +68,7 @@ const FeedbackViewer = ({ interview, onClose }) => {
   const recommendationConfig = feedback ? RECOMMENDATION_CONFIG[feedback.recommendation] : null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 p-4 md:p-6">

@@ -65,20 +65,20 @@ const FeedbackForm = ({ interview, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4 md:p-6">
+          <div className="flex items-start md:items-center justify-between gap-3">
+            <div className="flex items-start md:items-center gap-2 md:gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shrink-0">
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Submit Interview Feedback</h2>
-                <p className="text-sm text-gray-600 mt-0.5">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base md:text-xl font-bold text-gray-900">Submit Interview Feedback</h2>
+                <p className="text-xs md:text-sm text-gray-600 mt-0.5 truncate">
                   {interview.candidateId?.name} • {interview.jobId?.title}
                 </p>
               </div>
@@ -86,7 +86,7 @@ const FeedbackForm = ({ interview, onClose }) => {
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-2 transition-colors"
+              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -96,13 +96,13 @@ const FeedbackForm = ({ interview, onClose }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
           {/* Rating */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
+            <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">
               Overall Rating *
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 md:gap-2">
               {[1, 2, 3, 4, 5].map((rating) => (
                 <label 
                   key={rating} 
@@ -118,12 +118,12 @@ const FeedbackForm = ({ interview, onClose }) => {
                     value={rating}
                     className="sr-only"
                   />
-                  <div className={`text-center p-3 rounded-lg border-2 transition-all ${
+                  <div className={`text-center p-2 md:p-3 rounded-lg border-2 transition-all ${
                     watchedRating === String(rating)
                       ? 'border-yellow-400 bg-yellow-50 shadow-md'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   }`}>
-                    <div className="text-2xl mb-1">
+                    <div className="text-xl md:text-2xl mb-0.5 md:mb-1">
                       {watchedRating === String(rating) ? '★' : '☆'}
                     </div>
                     <div className={`text-xs font-medium ${
@@ -135,10 +135,10 @@ const FeedbackForm = ({ interview, onClose }) => {
                 </label>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-2">1 = Poor, 5 = Excellent</p>
+            <p className="text-xs text-gray-500 mt-1.5 md:mt-2">1 = Poor, 5 = Excellent</p>
             {errors.rating && (
-              <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p className="text-red-600 text-xs md:text-sm mt-2 flex items-center gap-1">
+                <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {errors.rating.message}
@@ -148,18 +148,18 @@ const FeedbackForm = ({ interview, onClose }) => {
 
           {/* Strengths */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
+            <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2">
               Strengths *
             </label>
             <textarea
               {...register("strengths", { required: "Please describe the candidate's strengths" })}
               placeholder="What did the candidate do well? (e.g., technical skills, communication, problem-solving)"
-              className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+              className="w-full border-2 border-gray-300 px-3 md:px-4 py-2 md:py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
               rows={3}
             />
             {errors.strengths && (
-              <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p className="text-red-600 text-xs md:text-sm mt-2 flex items-center gap-1">
+                <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {errors.strengths.message}
@@ -169,18 +169,18 @@ const FeedbackForm = ({ interview, onClose }) => {
 
           {/* Weaknesses */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
+            <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2">
               Areas for Improvement *
             </label>
             <textarea
               {...register("weaknesses", { required: "Please describe areas for improvement" })}
               placeholder="What could the candidate improve on? (e.g., specific skills, knowledge gaps)"
-              className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+              className="w-full border-2 border-gray-300 px-3 md:px-4 py-2 md:py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
               rows={3}
             />
             {errors.weaknesses && (
-              <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p className="text-red-600 text-xs md:text-sm mt-2 flex items-center gap-1">
+                <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {errors.weaknesses.message}
@@ -190,14 +190,14 @@ const FeedbackForm = ({ interview, onClose }) => {
 
           {/* Recommendation */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
+            <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">
               Recommendation *
             </label>
             <div className="space-y-2">
               {RECOMMENDATION_OPTIONS.map((option) => (
                 <label 
                   key={option.value} 
-                  className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  className={`flex items-center p-3 md:p-4 rounded-lg border-2 cursor-pointer transition-all ${
                     watchedRecommendation === option.value
                       ? option.color + ' shadow-md'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -209,27 +209,27 @@ const FeedbackForm = ({ interview, onClose }) => {
                     value={option.value}
                     className="sr-only"
                   />
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 ${
+                  <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center mr-2 md:mr-3 shrink-0 ${
                     watchedRecommendation === option.value
                       ? 'border-current'
                       : 'border-gray-300'
                   }`}>
                     {watchedRecommendation === option.value && (
-                      <div className="w-3 h-3 rounded-full bg-current"></div>
+                      <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-current"></div>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-medium">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs md:text-sm font-medium">
                       {option.label}
                     </span>
                   </div>
-                  <div className="text-current">{option.icon}</div>
+                  <div className="text-current shrink-0">{option.icon}</div>
                 </label>
               ))}
             </div>
             {errors.recommendation && (
-              <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p className="text-red-600 text-xs md:text-sm mt-2 flex items-center gap-1">
+                <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {errors.recommendation.message}
@@ -239,25 +239,25 @@ const FeedbackForm = ({ interview, onClose }) => {
 
           {/* Additional Notes */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
+            <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2">
               Additional Notes <span className="text-gray-500 font-normal">(Optional)</span>
             </label>
             <textarea
               {...register("notes")}
               placeholder="Any additional comments or observations..."
-              className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+              className="w-full border-2 border-gray-300 px-3 md:px-4 py-2 md:py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
               rows={3}
             />
           </div>
         </form>
 
         {/* Footer */}
-        <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+        <div className="bg-gray-50 border-t border-gray-200 px-4 md:px-6 py-3 md:py-4 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -265,7 +265,7 @@ const FeedbackForm = ({ interview, onClose }) => {
           <button
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2 shadow-sm"
+            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base"
           >
             {isSubmitting ? (
               <>
