@@ -260,7 +260,6 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md">
                 {getInitials(candidate.name)}
               </div>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
           </div>
           
@@ -347,7 +346,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 onClick={() => setShowAssignInterview(true)}
                 className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium shadow-sm transition-all hover:shadow-md"
               >
-                Interview
+                Assign Interview
               </button>
             )}
           </div>
