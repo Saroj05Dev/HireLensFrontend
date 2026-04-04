@@ -226,7 +226,15 @@ const PipelineBoard = ({ jobTitle }) => {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 md:p-4 mb-3 md:mb-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
-            <h2 className="text-base md:text-lg font-semibold text-gray-900">Candidate Pipeline</h2>
+            <div>
+              <h2 className="text-base md:text-lg font-semibold text-gray-900">Candidate Pipeline</h2>
+              <p className="text-xs text-blue-600 mt-0.5 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Click on avatar or name to view candidate profile
+              </p>
+            </div>
             
             {/* Stats */}
             <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">

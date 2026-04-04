@@ -222,18 +222,25 @@ const InterviewsContainer = () => {
 
           {/* Job Filter */}
           <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
-            <select
-              value={filters.jobId}
-              onChange={(e) => handleFilterChange("jobId", e.target.value)}
-              className="flex-1 px-3 md:px-4 py-2 border-2 border-gray-300 rounded-lg text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Jobs</option>
-              {jobs.map((job) => (
-                <option key={job.id} value={job.id}>
-                  {job.title}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex-1">
+              <select
+                value={filters.jobId}
+                onChange={(e) => handleFilterChange("jobId", e.target.value)}
+                className="w-full px-3 md:px-4 py-2 pr-10 border-2 border-gray-300 rounded-lg text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white truncate"
+              >
+                <option value="">All Jobs</option>
+                {jobs.map((job) => (
+                  <option key={job.id} value={job.id}>
+                    {job.title}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
 
             {(filters.status || filters.jobId) && (
               <button

@@ -112,17 +112,24 @@ const CreateJob = ({ onClose }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Experience Level
               </label>
-              <select
-                {...register("experience")}
-                className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select experience level</option>
-                <option value="0-1 years">0–1 years (Entry Level)</option>
-                <option value="1-3 years">1–3 years (Junior)</option>
-                <option value="3-5 years">3–5 years (Mid-Level)</option>
-                <option value="5-8 years">5–8 years (Senior)</option>
-                <option value="8+ years">8+ years (Lead/Principal)</option>
-              </select>
+              <div className="relative">
+                <select
+                  {...register("experience")}
+                  className="w-full border border-gray-300 px-4 py-2 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                >
+                  <option value="">Select experience level</option>
+                  <option value="0-1 years">0–1 years (Entry Level)</option>
+                  <option value="1-3 years">1–3 years (Junior)</option>
+                  <option value="3-5 years">3–5 years (Mid-Level)</option>
+                  <option value="5-8 years">5–8 years (Senior)</option>
+                  <option value="8+ years">8+ years (Lead/Principal)</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Location */}

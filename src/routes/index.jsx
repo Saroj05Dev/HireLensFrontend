@@ -5,6 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import Analytics from "../pages/Analytics";
 import TeamPage from "../pages/TeamPage";
 import AcceptInvitePage from "../pages/AcceptInvitePage";
+import ProfilePage from "../pages/ProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
@@ -135,6 +136,16 @@ const AppRoutes = () => {
             ) : (
               <TeamPage />
             )}
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Profile route - All roles */}
+      <Route 
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

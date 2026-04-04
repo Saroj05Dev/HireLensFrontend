@@ -97,6 +97,12 @@ const CandidateContainer = () => {
             <p className="text-xs md:text-sm text-gray-600 mt-1">
               Manage and track all candidates across your organization
             </p>
+            <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Click on avatar or name to view candidate profile
+            </p>
           </div>
           
           <div className="flex items-center gap-2 md:gap-3">
@@ -142,18 +148,25 @@ const CandidateContainer = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3">
-            <select
-              value={filters.jobId}
-              onChange={(e) => handleFilterChange("jobId", e.target.value)}
-              className="flex-1 sm:flex-none px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Jobs</option>
-              {jobs.map((job) => (
-                <option key={job.id || job._id} value={job.id || job._id}>
-                  {job.title}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex-1 sm:flex-none sm:min-w-[200px]">
+              <select
+                value={filters.jobId}
+                onChange={(e) => handleFilterChange("jobId", e.target.value)}
+                className="w-full px-3 md:px-4 py-2 md:py-3 pr-10 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              >
+                <option value="">All Jobs</option>
+                {jobs.map((job) => (
+                  <option key={job.id || job._id} value={job.id || job._id}>
+                    {job.title}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
 
             <div className="flex items-center gap-2 md:gap-3">
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">

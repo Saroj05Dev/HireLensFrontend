@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCandidateStage } from "./candidateSlice";
 import AssignInterview from "../interviews/AssignInterview";
@@ -32,12 +32,30 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
   const [selectedStage, setSelectedStage] = useState("");
   const [note, setNote] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  
+  const stageMenuRef = useRef(null);
 
   const isUpdating = stageUpdateLoading[candidate._id];
   const canAssignInterview = user?.role === "RECRUITER" && candidate.currentStage === "SCREENING";
   
   // Enable stage selector if showStageSelector is true OR if not draggable
   const canChangeStage = showStageSelector || !isDraggable;
+
+  // Close stage menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (stageMenuRef.current && !stageMenuRef.current.contains(event.target)) {
+        setShowStageMenu(false);
+      }
+    };
+
+    if (showStageMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showStageMenu]);
 
   const getInitials = (name) => {
     return name
@@ -98,7 +116,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
           draggable={isDraggable}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          className={`bg-white p-4 rounded-lg border shadow-sm transition-all flex items-center gap-4 ${
+          className={`bg-white p-3 md:p-4 rounded-lg border shadow-sm transition-all ${
             isDragging 
               ? "opacity-50 cursor-grabbing" 
               : isDraggable 
@@ -106,88 +124,95 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 : "hover:shadow-md"
           }`}
         >
-          {isDraggable && (
-            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-            </svg>
-          )}
-
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0">
-            {getInitials(candidate.name)}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h4 
-              className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 truncate"
-              onClick={() => onViewProfile(candidate)}
-            >
-              {candidate.name}
-            </h4>
-            <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            {candidate.phone && (
-              <div className="text-sm text-gray-600 hidden lg:block">
-                {candidate.phone}
-              </div>
+          <div className="flex items-center gap-2 md:gap-4">
+            {isDraggable && (
+              <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+              </svg>
             )}
 
-            <div className="relative">
-              <button
-                onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
-                disabled={isUpdating || !canChangeStage}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
-                  canChangeStage ? "hover:opacity-80 cursor-pointer" : "cursor-default"
-                } disabled:opacity-50`}
+            <div 
+              onClick={() => onViewProfile(candidate)}
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm md:text-base font-bold shrink-0 cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              {getInitials(candidate.name)}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h4 
+                className="text-sm md:text-base font-semibold text-gray-900 cursor-pointer hover:text-blue-600 truncate"
+                onClick={() => onViewProfile(candidate)}
               >
-                {isUpdating ? "..." : candidate.currentStage}
-              </button>
-              
-              {showStageMenu && canChangeStage && (
-                <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-36">
-                  {STAGES.map((stage) => (
-                    <button
-                      key={stage}
-                      onClick={() => handleStageSelect(stage)}
-                      className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${
-                        stage === candidate.currentStage ? "bg-gray-100 font-medium" : ""
-                      }`}
-                    >
-                      {stage}
-                    </button>
-                  ))}
-                </div>
+                {candidate.name}
+              </h4>
+              <p className="text-xs md:text-sm text-gray-600 truncate">{candidate.email}</p>
+            </div>
+
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <div className="relative" ref={stageMenuRef}>
+                <button
+                  onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
+                  disabled={isUpdating || !canChangeStage}
+                  className={`text-xs px-2 md:px-3 py-1 md:py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
+                    canChangeStage ? "hover:opacity-80 cursor-pointer" : "cursor-default"
+                  } disabled:opacity-50`}
+                >
+                  {isUpdating ? "..." : candidate.currentStage}
+                </button>
+                
+                {showStageMenu && canChangeStage && (
+                  <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-36 max-h-60 overflow-y-auto">
+                    {STAGES.map((stage) => (
+                      <button
+                        key={stage}
+                        onClick={() => handleStageSelect(stage)}
+                        className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${
+                          stage === candidate.currentStage ? "bg-gray-100 font-medium" : ""
+                        }`}
+                      >
+                        {stage}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {candidate.resumeUrl && (
+                <a
+                  href={candidate.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700 p-1"
+                  title="View Resume"
+                >
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </a>
+              )}
+
+              {canAssignInterview && (
+                <button
+                  onClick={() => setShowAssignInterview(true)}
+                  className="hidden sm:inline-flex text-xs bg-green-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg hover:bg-green-700 font-medium whitespace-nowrap"
+                >
+                  Assign Interview
+                </button>
               )}
             </div>
-
-            <div className="text-xs text-gray-500 hidden md:block">
-              {new Date(candidate.createdAt).toLocaleDateString()}
-            </div>
-
-            {canAssignInterview && (
+          </div>
+          
+          {/* Mobile action button row */}
+          {canAssignInterview && (
+            <div className="mt-2 sm:hidden">
               <button
                 onClick={() => setShowAssignInterview(true)}
-                className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium"
+                className="w-full text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium"
               >
                 Assign Interview
               </button>
-            )}
-
-            {candidate.resumeUrl && (
-              <a
-                href={candidate.resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700"
-                title="View Resume"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </a>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {showAssignInterview && (
@@ -257,13 +282,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               </svg>
             )}
             <div className="relative">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md">
+              <div 
+                onClick={() => onViewProfile(candidate)}
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              >
                 {getInitials(candidate.name)}
               </div>
             </div>
           </div>
           
-          <div className="relative shrink-0">
+          <div className="relative shrink-0" ref={stageMenuRef}>
             <button
               onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
               disabled={isUpdating || !canChangeStage}
@@ -275,7 +303,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
             </button>
             
             {showStageMenu && canChangeStage && (
-              <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 min-w-36 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 min-w-36 max-h-60 overflow-y-auto">
                 {STAGES.map((stage) => (
                   <button
                     key={stage}

@@ -60,13 +60,13 @@ const MembersList = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-4 md:p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-base md:text-lg font-semibold text-gray-900">
               Active Members
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs md:text-sm text-gray-500 mt-1">
               {members.length} member{members.length !== 1 ? "s" : ""} in your
               organization
             </p>
@@ -76,10 +76,10 @@ const MembersList = () => {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="mx-6 mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="mx-3 md:mx-6 mt-3 md:mt-4 bg-green-50 border border-green-200 text-green-700 px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center justify-between text-xs md:text-sm">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 md:w-5 md:h-5 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -91,14 +91,14 @@ const MembersList = () => {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <span>{successMessage}</span>
+            <span className="break-words">{successMessage}</span>
           </div>
           <button
             onClick={() => setSuccessMessage("")}
-            className="text-green-700 hover:text-green-900"
+            className="text-green-700 hover:text-green-900 shrink-0 ml-2"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 md:w-5 md:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -116,10 +116,10 @@ const MembersList = () => {
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="mx-3 md:mx-6 mt-3 md:mt-4 bg-red-50 border border-red-200 text-red-700 px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center justify-between text-xs md:text-sm">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 md:w-5 md:h-5 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -131,14 +131,14 @@ const MembersList = () => {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span>{errorMessage}</span>
+            <span className="break-words">{errorMessage}</span>
           </div>
           <button
             onClick={() => setErrorMessage("")}
-            className="text-red-700 hover:text-red-900"
+            className="text-red-700 hover:text-red-900 shrink-0 ml-2"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 md:w-5 md:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -182,24 +182,24 @@ const MembersList = () => {
           members.map((member) => (
             <div
               key={member.id}
-              className={`p-4 transition-colors ${
+              className={`p-3 md:p-4 transition-colors ${
                 member.isActive
                   ? "hover:bg-gray-50"
                   : "bg-gray-50 opacity-60 hover:bg-gray-100"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-0 sm:justify-between">
+                <div className="flex items-center gap-3 md:gap-4 flex-1 w-full sm:w-auto min-w-0">
                   {/* Avatar */}
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 ${
                       member.isActive
                         ? "bg-blue-100"
                         : "bg-gray-200"
                     }`}
                   >
                     <span
-                      className={`font-semibold text-base ${
+                      className={`font-semibold text-sm md:text-base ${
                         member.isActive
                           ? "text-blue-600"
                           : "text-gray-500"
@@ -211,9 +211,9 @@ const MembersList = () => {
 
                   {/* Member Details */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <p
-                        className={`text-sm font-medium truncate ${
+                        className={`text-xs md:text-sm font-medium truncate ${
                           member.isActive
                             ? "text-gray-900"
                             : "text-gray-600"
@@ -222,18 +222,18 @@ const MembersList = () => {
                         {member.name}
                       </p>
                       {!member.isActive && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded">
+                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded shrink-0">
                           Inactive
                         </span>
                       )}
                       {member.isActive && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded shrink-0">
                           Active
                         </span>
                       )}
                     </div>
                     <p
-                      className={`text-sm truncate ${
+                      className={`text-xs md:text-sm truncate ${
                         member.isActive
                           ? "text-gray-500"
                           : "text-gray-400"
@@ -248,9 +248,9 @@ const MembersList = () => {
                 </div>
 
                 {/* Role and Actions */}
-                <div className="flex items-center gap-3 ml-4">
+                <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto sm:ml-4">
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    className={`px-2 md:px-3 py-1 text-xs font-medium rounded-full ${
                       member.isActive
                         ? "bg-blue-50 text-blue-700"
                         : "bg-gray-200 text-gray-600"
@@ -262,7 +262,7 @@ const MembersList = () => {
                   {member.isActive && (
                     <button
                       onClick={() => handleDeactivateClick(member)}
-                      className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                      className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
                     >
                       Deactivate
                     </button>

@@ -161,17 +161,24 @@ const AssignInterview = ({ candidate, onClose }) => {
               </div>
             ) : (
               <div className="space-y-2">
-                <select
-                  {...register("interviewerId", { required: "Please select an interviewer" })}
-                  className="w-full border-2 border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="">Choose an interviewer...</option>
-                  {interviewers.map((interviewer) => (
-                    <option key={interviewer._id} value={interviewer._id}>
-                      {interviewer.name} - {interviewer.email}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    {...register("interviewerId", { required: "Please select an interviewer" })}
+                    className="w-full border-2 border-gray-300 px-3 py-2 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white"
+                  >
+                    <option value="">Choose an interviewer...</option>
+                    {interviewers.map((interviewer) => (
+                      <option key={interviewer._id} value={interviewer._id}>
+                        {interviewer.name} - {interviewer.email}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
                 {errors.interviewerId && (
                   <p className="text-red-600 text-xs flex items-center gap-1">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

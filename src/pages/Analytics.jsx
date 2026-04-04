@@ -361,20 +361,27 @@ const Analytics = () => {
 
       {/* Job-Specific Analytics */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Job-Specific Analytics</h2>
-          <select
-            value={selectedJob || ""}
-            onChange={(e) => setSelectedJob(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select a job</option>
-            {jobs.map((job) => (
-              <option key={job.id} value={job.id}>
-                {job.title}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900">Job-Specific Analytics</h2>
+          <div className="relative w-full sm:w-auto min-w-[200px]">
+            <select
+              value={selectedJob || ""}
+              onChange={(e) => setSelectedJob(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 md:px-4 py-2 pr-10 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+            >
+              <option value="">Select a job</option>
+              {jobs.map((job) => (
+                <option key={job.id} value={job.id}>
+                  {job.title}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {!selectedJob ? (

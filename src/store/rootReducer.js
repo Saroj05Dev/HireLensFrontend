@@ -5,6 +5,7 @@ import jobReducer from "../features/jobs/jobsSlice";
 import interviewReducer from "../features/interviews/interviewSlice";
 import teamReducer from "../features/team/teamSlice";
 import notificationReducer from "../features/notifications/notificationSlice";
+import profileReducer from "../features/profile/profileSlice";
 
 
 export default combineReducers({
@@ -13,5 +14,6 @@ export default combineReducers({
     candidates: candidateReducer,
     interviews: interviewReducer,
     team: teamReducer,
-    notifications: notificationReducer
+    notifications: notificationReducer,
+    profile: profileReducer
 });
