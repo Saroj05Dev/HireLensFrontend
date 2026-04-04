@@ -206,18 +206,18 @@ const PipelineBoard = ({ jobTitle }) => {
   return (
     <div>
       {/* Pipeline Header */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-900">Candidate Pipeline</h2>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 md:p-4 mb-3 md:mb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
+            <h2 className="text-base md:text-lg font-semibold text-gray-900">Candidate Pipeline</h2>
             
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">
+              <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 bg-blue-50 rounded-lg">
                 <span className="text-gray-600">Total:</span>
                 <span className="font-bold text-blue-600">{totalCandidates}</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 bg-green-50 rounded-lg">
                 <span className="text-gray-600">Active:</span>
                 <span className="font-bold text-green-600">{activeCandidates}</span>
               </div>
@@ -227,7 +227,7 @@ const PipelineBoard = ({ jobTitle }) => {
           {canManageCandidates && (
             <button
               onClick={() => setShowAddCandidate(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm shadow-sm"
+              className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs md:text-sm shadow-sm w-full sm:w-auto"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -240,9 +240,9 @@ const PipelineBoard = ({ jobTitle }) => {
 
       {/* Empty State */}
       {totalCandidates === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 md:p-12 text-center">
           <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
+            className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-3 md:mb-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -254,16 +254,16 @@ const PipelineBoard = ({ jobTitle }) => {
               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
             />
           </svg>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No candidates yet</h3>
-          <p className="text-gray-500 mb-4">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">No candidates yet</h3>
+          <p className="text-sm md:text-base text-gray-500 mb-4">
             Start building your pipeline by adding candidates to this job.
           </p>
           {canManageCandidates && (
             <button
               onClick={() => setShowAddCandidate(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2 text-sm md:text-base"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Add First Candidate
@@ -272,8 +272,8 @@ const PipelineBoard = ({ jobTitle }) => {
         </div>
       ) : (
         /* Pipeline Columns */
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-          <div className="flex gap-4 overflow-x-auto pb-2">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-2 md:p-4">
+          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2">
             {STAGES.map((stage) => {
               const stageCandidates = getCandidatesByStage(stage.key);
               const isDropZone = dragOverStage === stage.key;
@@ -281,16 +281,16 @@ const PipelineBoard = ({ jobTitle }) => {
               return (
                 <div
                   key={stage.key}
-                  className="min-w-[280px] shrink-0"
+                  className="min-w-[240px] md:min-w-[280px] shrink-0"
                 >
                   {/* Stage Header */}
-                  <div className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200">
+                  <div className="bg-gray-50 rounded-lg p-2 md:p-3 mb-2 md:mb-3 border border-gray-200">
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-600">{stage.icon}</span>
-                        <h3 className="text-sm font-semibold text-gray-900">{stage.label}</h3>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <span className="text-gray-600 scale-90 md:scale-100">{stage.icon}</span>
+                        <h3 className="text-xs md:text-sm font-semibold text-gray-900">{stage.label}</h3>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>
+                      <span className={`text-xs px-2 py-0.5 md:py-1 rounded-full font-medium ${stage.color}`}>
                         {stageCandidates.length}
                       </span>
                     </div>
@@ -298,10 +298,10 @@ const PipelineBoard = ({ jobTitle }) => {
 
                   {/* Candidates List - Drop Zone */}
                   <div 
-                    className={`space-y-3 max-h-[600px] overflow-y-auto pr-1 rounded-lg transition-all ${
+                    className={`space-y-2 md:space-y-3 max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 rounded-lg transition-all ${
                       isDropZone && canDragCandidates
-                        ? "bg-blue-50 border-2 border-blue-400 border-dashed p-2" 
-                        : "border-2 border-transparent p-2"
+                        ? "bg-blue-50 border-2 border-blue-400 border-dashed p-1 md:p-2" 
+                        : "border-2 border-transparent p-1 md:p-2"
                     }`}
                     onDragOver={(e) => canDragCandidates && handleDragOver(e, stage.key)}
                     onDragEnter={(e) => canDragCandidates && handleDragEnter(e, stage.key)}
@@ -309,11 +309,11 @@ const PipelineBoard = ({ jobTitle }) => {
                     onDrop={(e) => canDragCandidates && handleDrop(e, stage.key)}
                   >
                     {stageCandidates.length === 0 ? (
-                      <div className={`text-xs text-gray-400 text-center py-8 rounded-lg border-2 border-dashed ${
+                      <div className={`text-xs text-gray-400 text-center py-6 md:py-8 rounded-lg border-2 border-dashed ${
                         isDropZone && canDragCandidates ? "border-blue-400 bg-blue-100" : "border-gray-200 bg-gray-50"
                       }`}>
                         <svg
-                          className={`w-8 h-8 mx-auto mb-2 ${
+                          className={`w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 ${
                             isDropZone && canDragCandidates ? "text-blue-400" : "text-gray-300"
                           }`}
                           fill="none"
@@ -365,13 +365,13 @@ const PipelineBoard = ({ jobTitle }) => {
 
       {/* Drop Confirmation Modal */}
       {showDropConfirm && draggedCandidate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
-            <h3 className="font-semibold text-lg mb-3">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
+            <h3 className="font-semibold text-base md:text-lg mb-3">
               Move {draggedCandidate.name} to {draggedCandidate.newStage}?
             </h3>
             
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-xs md:text-sm text-gray-600 mb-4">
               Current stage: <span className="font-medium">{draggedCandidate.currentStage}</span>
               <br />
               New stage: <span className="font-medium">{draggedCandidate.newStage}</span>
@@ -381,20 +381,20 @@ const PipelineBoard = ({ jobTitle }) => {
               value={dropNote}
               onChange={(e) => setDropNote(e.target.value)}
               placeholder="Add a note about this stage change (optional)"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={3}
             />
             
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
               <button
                 onClick={handleCancelDrop}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDrop}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Confirm Move
               </button>
