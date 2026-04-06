@@ -439,7 +439,7 @@ const Dashboard = () => {
         {filteredActivity.length > 0 && (
           <div className="p-4 border-t border-gray-200 text-center">
             <button 
-              onClick={() => navigate("/analytics")}
+              onClick={() => navigate("/activity")}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               View all activity →

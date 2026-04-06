@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 
 import Dashboard from "../pages/Dashboard";
 import Analytics from "../pages/Analytics";
+import ActivityPage from "../pages/ActivityPage";
 import TeamPage from "../pages/TeamPage";
 import AcceptInvitePage from "../pages/AcceptInvitePage";
 import ProfilePage from "../pages/ProfilePage";
@@ -122,6 +123,16 @@ const AppRoutes = () => {
             ) : (
               <Analytics />
             )}
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Activity route - All roles */}
+      <Route 
+        path="/activity"
+        element={
+          <ProtectedRoute>
+            <ActivityPage />
           </ProtectedRoute>
         }
       />
