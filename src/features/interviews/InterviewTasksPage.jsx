@@ -15,10 +15,21 @@ const InterviewTasksPage = () => {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [showFeedbackViewer, setShowFeedbackViewer] = useState(false);
   const [activeTab, setActiveTab] = useState("pending");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     dispatch(getMyInterviews());
   }, [dispatch]);
+
+  // Listen for search events from Navbar
+  useEffect(() => {
+    const handleSearch = (event) => {
+      setSearchQuery(event.detail.toLowerCase());
+    };
+
+    window.addEventListener('interviewSearch', handleSearch);
+    return () => window.removeEventListener('interviewSearch', handleSearch);
+  }, []);
 
   // Set up real-time listeners
   useEffect(() => {
@@ -41,7 +52,21 @@ const InterviewTasksPage = () => {
 
   const pendingInterviews = myInterviews.filter(i => i.status === "ASSIGNED");
   const completedInterviews = myInterviews.filter(i => i.status === "COMPLETED");
-  const displayedInterviews = activeTab === "pending" ? pendingInterviews : completedInterviews;
+  
+  // Filter interviews based on search query
+  const filterInterviews = (interviews) => {
+    if (!searchQuery) return interviews;
+    
+    return interviews.filter(interview => {
+      const candidateName = interview.candidateId?.name?.toLowerCase() || '';
+      const jobTitle = interview.jobId?.title?.toLowerCase() || '';
+      return candidateName.includes(searchQuery) || jobTitle.includes(searchQuery);
+    });
+  };
+  
+  const displayedInterviews = activeTab === "pending" 
+    ? filterInterviews(pendingInterviews)
+    : filterInterviews(completedInterviews);
 
   const handleSubmitFeedback = (interview) => {
     setSelectedInterview(interview);
