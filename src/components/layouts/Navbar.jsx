@@ -75,10 +75,11 @@ const Navbar = () => {
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
-          <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs md:text-sm">HL</span>
-          </div>
-          <span className="font-semibold text-lg md:text-xl text-white">HireLens</span>
+          <img 
+            src="/images/hirelens-logo.png" 
+            alt="HireLens Logo" 
+            className="h-8 md:h-10 w-auto"
+          />
         </button>
         
         {/* Organization Name - Hidden on small screens */}

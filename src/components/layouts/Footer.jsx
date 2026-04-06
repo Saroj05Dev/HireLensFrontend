@@ -10,12 +10,11 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Brand Section */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-3 md:mb-4">
-              <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs md:text-sm">HL</span>
-              </div>
-              <span className="text-lg md:text-xl font-bold text-gray-900">HireLens</span>
-            </div>
+            <img 
+              src="/images/hirelens-logo.png" 
+              alt="HireLens Logo" 
+              className="h-12 md:h-14 w-auto mb-3 md:mb-4"
+            />
             <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
               Streamline your hiring process with intelligent applicant tracking.
             </p>
