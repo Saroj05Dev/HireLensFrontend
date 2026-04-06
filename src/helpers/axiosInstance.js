@@ -25,8 +25,23 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Don't retry if it's the initial auth check (/auth/me) or refresh endpoint
+    const isAuthCheck = originalRequest.url?.includes('/auth/me');
+    const isRefreshEndpoint = originalRequest.url?.includes('/auth/refresh');
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      // If it's the initial auth check, just reject silently (user not logged in)
+      if (isAuthCheck && !isRefreshing) {
+        return Promise.reject(error);
+      }
+
+      // If refresh endpoint fails, user needs to login again
+      if (isRefreshEndpoint) {
+        if (onLogout) onLogout();
+        return Promise.reject(error);
+      }
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

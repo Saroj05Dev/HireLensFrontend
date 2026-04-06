@@ -12,6 +12,10 @@ export const fetchMe = createAsyncThunk(
       const res = await axiosInstance.get("/auth/me");
       return res.data.data;
     } catch (error) {
+      // Silently fail if user is not authenticated (expected on initial load)
+      if (error.response?.status === 401) {
+        return rejectWithValue(null);
+      }
       return rejectWithValue(
         error.response?.data?.message || "Something went wrong"
       );
