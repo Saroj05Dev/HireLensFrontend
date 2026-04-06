@@ -102,7 +102,6 @@ const Sidebar = () => {
       <div className="p-4 border-t border-slate-800">
         <div className="bg-slate-800 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-xs font-medium text-slate-300">System Status</span>
           </div>
           <div className="text-xs text-slate-400">All systems operational</div>
