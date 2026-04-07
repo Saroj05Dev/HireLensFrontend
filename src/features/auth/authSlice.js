@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../helpers/axiosInstance";
 import { connectSocket, disconnectSocket } from "../../helpers/socket";
-import { loginApi, signupApi } from "./auth.api";
+import { loginApi, logoutApi, signupApi } from "./auth.api";
 import { acceptInviteApi } from "../team/team.api";
 
 // FetchMe
@@ -55,7 +55,19 @@ export const login = createAsyncThunk(
   }
 );
 
-// Accept Invite
+// Logout
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      await logoutApi();
+    } catch (error) {
+      // Even if the API call fails, we still want to clear local state
+    } finally {
+      disconnectSocket();
+    }
+  }
+);
 
 export const acceptInvite = createAsyncThunk(
   "auth/acceptInvite",
@@ -82,9 +94,6 @@ const authSlice = createSlice({
     authError: null,
   },
   reducers: {
-    logout: (state) => {
-      (state.user = null), (state.isAuthenticated = false), disconnectSocket();
-    },
     updateUser: (state, action) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
@@ -110,6 +119,16 @@ const authSlice = createSlice({
         (state.loading = false),
           (state.isAuthenticated = false),
           (state.user = null);
+      })
+
+      /* logout */
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(logout.rejected, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
       })
 
       /* signup & login */
@@ -149,5 +168,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, updateUser } = authSlice.actions;
+export const { updateUser } = authSlice.actions;
+export { logout };
 export default authSlice.reducer;

@@ -7,3 +7,7 @@ export const signupApi = async (payload) => {
 export const loginApi = async (payload) => {
     return axiosInstance.post("/auth/login", payload);
 };
+
+export const logoutApi = async () => {
+    return axiosInstance.post("/auth/logout");
+};
