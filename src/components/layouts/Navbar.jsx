@@ -78,7 +78,7 @@ const Navbar = () => {
           <img 
             src="/images/hirelens-logo.png" 
             alt="HireLens Logo" 
-            className="h-8 md:h-10 w-auto"
+            className="h-8 md:h-10 w-auto rounded-lg"
           />
         </button>
         
