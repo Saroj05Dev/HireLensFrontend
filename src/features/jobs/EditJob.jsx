@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { updateJob } from "./jobsSlice";
 import { useState } from "react";
+import { toast } from "../../components/ui/Toast";
 
 const EditJob = ({ job, onClose }) => {
   const dispatch = useDispatch();
@@ -29,7 +30,7 @@ const EditJob = ({ job, onClose }) => {
       await dispatch(updateJob({ jobId: job.id, jobData })).unwrap();
       onClose();
     } catch (error) {
-      alert(error || "Failed to update job");
+      toast.error(error || "Failed to update job");
     } finally {
       setIsSubmitting(false);
     }

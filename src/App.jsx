@@ -4,6 +4,7 @@ import AppRoutes from './routes'
 import { useDispatch } from 'react-redux'
 import { useEffect } from 'react';
 import { fetchMe } from './features/auth/authSlice';
+import { ToastProvider } from './components/ui/Toast';
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ToastProvider />
       <AppRoutes />
     </BrowserRouter>
   )

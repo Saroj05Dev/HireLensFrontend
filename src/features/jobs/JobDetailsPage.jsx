@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchJobs, closeJob, reopenJob, deleteJob } from "./jobsSlice";
 import PipelineBoard from "./PipelineBoard";
 import EditJob from "./EditJob";
+import { toast } from "../../components/ui/Toast";
 
 const JobDetailsPage = () => {
   const { id } = useParams();
@@ -43,7 +44,7 @@ const JobDetailsPage = () => {
         await dispatch(reopenJob(job.id)).unwrap();
       }
     } catch (error) {
-      alert(error || `Failed to ${action} job`);
+      toast.error(error || `Failed to ${action} job`);
     } finally {
       setIsUpdating(false);
     }
@@ -60,7 +61,7 @@ const JobDetailsPage = () => {
       await dispatch(deleteJob(job.id)).unwrap();
       navigate("/jobs");
     } catch (error) {
-      alert(error || "Failed to delete job");
+      toast.error(error || "Failed to delete job");
       setIsDeleting(false);
     }
   };

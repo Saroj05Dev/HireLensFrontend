@@ -6,6 +6,7 @@ import { onCandidateStageUpdated, offSocketEvent } from "../../helpers/socket";
 import CandidateCard from "../candidates/CandidateCard";
 import AddCandidate from "../candidates/AddCandidate";
 import CandidateProfile from "../candidates/CandidateProfile";
+import { toast } from "../../components/ui/Toast";
 
 // Linear stage order — must advance exactly one step at a time
 const STAGE_ORDER = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
@@ -188,12 +189,12 @@ const PipelineBoard = ({ jobTitle }) => {
     const validNext = getNextValidStages(currentStage);
     if (!validNext.includes(newStage)) {
       if (currentStage === "HIRED") {
-        alert(`${candidate.name} is hired — this is a final state and cannot be changed.`);
+        toast.warning(`${candidate.name} is hired — this is a final state and cannot be changed.`);
       } else if (currentStage === "REJECTED") {
-        alert(`${candidate.name} is rejected. Use the 'Reopen' button to re-evaluate them.`);
+        toast.warning(`${candidate.name} is rejected. Use the 'Reopen' button to re-evaluate them.`);
       } else {
         const nextStage = STAGE_ORDER[STAGE_ORDER.indexOf(currentStage) + 1];
-        alert(`Cannot skip stages. The next valid stage after ${currentStage} is ${nextStage || "REJECTED"}.`);
+        toast.error(`Cannot skip stages. The next valid stage after ${currentStage} is ${nextStage || "REJECTED"}.`);
       }
       return;
     }
