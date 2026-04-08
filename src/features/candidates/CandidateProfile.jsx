@@ -121,10 +121,10 @@ const CandidateProfile = ({ candidate, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
       <div className="bg-white rounded-xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-        <div className="bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-200 p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-3 md:gap-4 mb-3 md:mb-4">
+        <div className="bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-200 p-3 md:p-6 shrink-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 md:gap-4 mb-2 md:mb-4">
             <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0 w-full sm:w-auto">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-xl font-bold shadow-lg shrink-0">
+              <div className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm md:text-xl font-bold shadow-lg shrink-0">
                 {getInitials(candidate.name)}
               </div>
               
@@ -165,13 +165,13 @@ const CandidateProfile = ({ candidate, onClose }) => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3">
+          <div className="flex flex-row items-center gap-2 md:gap-3 flex-wrap">
             {candidate.resumeUrl && (
               <a
                 href={candidate.resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium shadow-sm w-full sm:w-auto justify-center"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium shadow-sm"
               >
                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -189,7 +189,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
           </div>
         </div>
 
-        <div className="border-b border-gray-200 bg-white overflow-x-auto">
+        <div className="border-b border-gray-200 bg-white sticky top-0 z-10 shrink-0">
           <div className="flex px-4 md:px-6 w-full justify-around md:justify-start md:w-auto md:min-w-max">
             {[
               { key: "details", label: "Candidate Details", shortLabel: "Details", icon: (
