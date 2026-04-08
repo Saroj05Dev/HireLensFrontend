@@ -49,3 +49,9 @@ export const getCandidateInterviewsApi = async (candidateId) => {
   const response = await axiosInstance.get(`/candidates/${candidateId}/interviews`);
   return response.data.data;
 };
+
+// Reopen a rejected candidate
+export const reopenCandidateApi = async (candidateId, { note } = {}) => {
+  const response = await axiosInstance.patch(`/candidates/${candidateId}/reopen`, { note });
+  return response.data.data;
+};

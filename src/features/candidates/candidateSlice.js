@@ -4,6 +4,7 @@ import {
   getCandidatesByJobApi, 
   getAllCandidatesApi,
   updateCandidateStageApi,
+  reopenCandidateApi,
   getCandidateProfileApi 
 } from "./candidate.api";
 
@@ -66,6 +67,19 @@ export const getCandidateProfile = createAsyncThunk(
     try {
       const res = await getCandidateProfileApi(candidateId);
       return res;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message);
+    }
+  }
+);
+
+// Reopen a rejected candidate
+export const reopenCandidate = createAsyncThunk(
+  "candidates/reopenCandidate",
+  async ({ candidateId, note }, { rejectWithValue }) => {
+    try {
+      const res = await reopenCandidateApi(candidateId, { note });
+      return { candidateId, newStage: "APPLIED", ...res };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message);
     }
@@ -202,6 +216,31 @@ const candidateSlice = createSlice({
         }
       })
       .addCase(updateCandidateStage.rejected, (state, action) => {
+        const { candidateId } = action.meta.arg;
+        state.stageUpdateLoading[candidateId] = false;
+        state.error = action.payload;
+      })
+
+      // Reopen candidate
+      .addCase(reopenCandidate.pending, (state, action) => {
+        const { candidateId } = action.meta.arg;
+        state.stageUpdateLoading[candidateId] = true;
+      })
+      .addCase(reopenCandidate.fulfilled, (state, action) => {
+        const { candidateId, newStage } = action.payload;
+        state.stageUpdateLoading[candidateId] = false;
+
+        const applyChange = (c) => { if (c) c.currentStage = newStage; };
+
+        applyChange(state.list.find(c => c._id === candidateId));
+        Object.values(state.candidatesByJob).forEach(list =>
+          applyChange(list.find(c => c._id === candidateId))
+        );
+        if (state.selectedCandidate?._id === candidateId) {
+          state.selectedCandidate.currentStage = newStage;
+        }
+      })
+      .addCase(reopenCandidate.rejected, (state, action) => {
         const { candidateId } = action.meta.arg;
         state.stageUpdateLoading[candidateId] = false;
         state.error = action.payload;

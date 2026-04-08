@@ -7,6 +7,16 @@ import CandidateCard from "../candidates/CandidateCard";
 import AddCandidate from "../candidates/AddCandidate";
 import CandidateProfile from "../candidates/CandidateProfile";
 
+// Linear stage order — must advance exactly one step at a time
+const STAGE_ORDER = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
+
+const getNextValidStages = (currentStage) => {
+  if (currentStage === "HIRED" || currentStage === "REJECTED") return [];
+  const idx = STAGE_ORDER.indexOf(currentStage);
+  const next = idx >= 0 && idx < STAGE_ORDER.length - 1 ? [STAGE_ORDER[idx + 1]] : [];
+  return [...next, "REJECTED"];
+};
+
 const STAGES = [
   { 
     key: "APPLIED", 
@@ -83,6 +93,7 @@ const PipelineBoard = ({ jobTitle }) => {
   const [draggedCandidate, setDraggedCandidate] = useState(null);
   const [showDropConfirm, setShowDropConfirm] = useState(false);
   const [dropNote, setDropNote] = useState("");
+  const [dropError, setDropError] = useState("");
 
   const candidates = candidatesByJob[jobId] || [];
   const loading = jobCandidatesLoading[jobId];
@@ -167,38 +178,58 @@ const PipelineBoard = ({ jobTitle }) => {
     setDragOverStage(null);
     
     // Don't update if dropping in the same stage
-    if (currentStage === newStage) {
-      return;
-    }
+    if (currentStage === newStage) return;
     
     // Find the candidate
     const candidate = candidates.find(c => c._id === candidateId);
     if (!candidate) return;
+
+    // Validate the transition before showing modal
+    const validNext = getNextValidStages(currentStage);
+    if (!validNext.includes(newStage)) {
+      if (currentStage === "HIRED") {
+        alert(`${candidate.name} is hired — this is a final state and cannot be changed.`);
+      } else if (currentStage === "REJECTED") {
+        alert(`${candidate.name} is rejected. Use the 'Reopen' button to re-evaluate them.`);
+      } else {
+        const nextStage = STAGE_ORDER[STAGE_ORDER.indexOf(currentStage) + 1];
+        alert(`Cannot skip stages. The next valid stage after ${currentStage} is ${nextStage || "REJECTED"}.`);
+      }
+      return;
+    }
     
-    // Show confirmation modal
+    // Valid drop — show confirmation modal
+    setDropError("");
     setDraggedCandidate({ ...candidate, newStage });
     setShowDropConfirm(true);
   };
 
   const handleConfirmDrop = async () => {
     if (!draggedCandidate) return;
+    setDropError("");
     
-    await dispatch(updateCandidateStage({
+    const result = await dispatch(updateCandidateStage({
       candidateId: draggedCandidate._id,
       newStage: draggedCandidate.newStage,
       note: dropNote.trim()
     }));
+
+    if (updateCandidateStage.rejected.match(result)) {
+      setDropError(result.payload || "Failed to update stage.");
+      return;
+    }
     
-    // Reset state
     setShowDropConfirm(false);
     setDraggedCandidate(null);
     setDropNote("");
+    setDropError("");
   };
 
   const handleCancelDrop = () => {
     setShowDropConfirm(false);
     setDraggedCandidate(null);
     setDropNote("");
+    setDropError("");
   };
 
   // Calculate stats
@@ -393,15 +424,22 @@ const PipelineBoard = ({ jobTitle }) => {
       {showDropConfirm && draggedCandidate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
-            <h3 className="font-semibold text-base md:text-lg mb-3">
-              Move {draggedCandidate.name} to {draggedCandidate.newStage}?
+            <h3 className="font-semibold text-base md:text-lg mb-1">
+              Move {draggedCandidate.name} to{" "}
+              <span className={draggedCandidate.newStage === "REJECTED" ? "text-red-600" : "text-blue-600"}>
+                {draggedCandidate.newStage}
+              </span>?
             </h3>
             
             <p className="text-xs md:text-sm text-gray-600 mb-4">
-              Current stage: <span className="font-medium">{draggedCandidate.currentStage}</span>
-              <br />
-              New stage: <span className="font-medium">{draggedCandidate.newStage}</span>
+              From: <span className="font-medium">{draggedCandidate.currentStage}</span>
             </p>
+
+            {dropError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs mb-3">
+                {dropError}
+              </div>
+            )}
             
             <textarea
               value={dropNote}
@@ -420,7 +458,9 @@ const PipelineBoard = ({ jobTitle }) => {
               </button>
               <button
                 onClick={handleConfirmDrop}
-                className="px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg transition-colors ${
+                  draggedCandidate.newStage === "REJECTED" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
                 Confirm Move
               </button>
