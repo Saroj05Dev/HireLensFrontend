@@ -4,6 +4,7 @@ import { getMyInterviews, interviewAssignedRealtime, feedbackSubmittedRealtime }
 import { onInterviewAssigned, onFeedbackSubmitted, offSocketEvent } from "../../helpers/socket";
 import FeedbackForm from "./FeedbackForm";
 import FeedbackViewer from "./FeedbackViewer";
+import Loader from "../../components/ui/Loader";
 
 const InterviewTasksPage = () => {
   const dispatch = useDispatch();
@@ -112,10 +113,7 @@ const InterviewTasksPage = () => {
   if (myInterviewsLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading your interview tasks...</p>
-        </div>
+        <Loader text="Loading your interview tasks..." size="lg" />
       </div>
     );
   }

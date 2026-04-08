@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getInterviewFeedback } from "./interviewSlice";
+import Loader from "../../components/ui/Loader";
 
 const RECOMMENDATION_CONFIG = {
   PROCEED: { 
@@ -102,8 +103,7 @@ const FeedbackViewer = ({ interview, onClose }) => {
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-sm md:text-base text-gray-600">Loading feedback...</p>
+              <Loader text="Loading feedback..." />
             </div>
           ) : !feedback ? (
             <div className="flex flex-col items-center justify-center py-12">

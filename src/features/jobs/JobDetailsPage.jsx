@@ -5,6 +5,7 @@ import { fetchJobs, closeJob, reopenJob, deleteJob } from "./jobsSlice";
 import PipelineBoard from "./PipelineBoard";
 import EditJob from "./EditJob";
 import { toast } from "../../components/ui/Toast";
+import Loader from "../../components/ui/Loader";
 
 const JobDetailsPage = () => {
   const { id } = useParams();
@@ -69,10 +70,7 @@ const JobDetailsPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading job details...</p>
-        </div>
+        <Loader text="Loading job details..." />
       </div>
     );
   }

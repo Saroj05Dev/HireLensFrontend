@@ -13,6 +13,7 @@ import {
   clearError,
 } from "../features/team/teamSlice";
 import InviteUserModal from "../features/team/InviteUserModal";
+import Loader from "../components/ui/Loader";
 import MembersList from "../features/team/MembersList";
 import PendingInvitesList from "../features/team/PendingInvitesList";
 
@@ -54,10 +55,7 @@ const TeamPage = () => {
   if (loading && members.length === 0 && pendingInvites.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading team data...</p>
-        </div>
+        <Loader text="Loading team data..." />
       </div>
     );
   }

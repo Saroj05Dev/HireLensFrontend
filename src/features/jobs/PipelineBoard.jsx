@@ -7,6 +7,7 @@ import CandidateCard from "../candidates/CandidateCard";
 import AddCandidate from "../candidates/AddCandidate";
 import CandidateProfile from "../candidates/CandidateProfile";
 import { toast } from "../../components/ui/Toast";
+import Loader from "../../components/ui/Loader";
 
 // Linear stage order — must advance exactly one step at a time
 const STAGE_ORDER = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
@@ -243,10 +244,7 @@ const PipelineBoard = ({ jobTitle }) => {
     return (
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
         <div className="flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading pipeline...</p>
-          </div>
+          <Loader text="Loading pipeline..." />
         </div>
       </div>
     );

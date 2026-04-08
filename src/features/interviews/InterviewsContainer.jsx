@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { getAllInterviewsApi } from "./interview.api";
 import { onInterviewAssigned, onFeedbackSubmitted, offSocketEvent } from "../../helpers/socket";
 import FeedbackViewer from "./FeedbackViewer";
+import Loader from "../../components/ui/Loader";
 
 const STATUS_FILTERS = [
   { key: "", label: "All Interviews", color: "blue" },
@@ -114,10 +115,7 @@ const InterviewsContainer = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading interviews...</p>
-        </div>
+        <Loader text="Loading interviews..." size="lg" />
       </div>
     );
   }

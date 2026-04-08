@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getDashboardStatsApi, getRecentActivityApi, getCandidatesByStageApi } from "./dashboard.api";
 import { onDecisionCreated, offSocketEvent } from "../helpers/socket";
+import Loader from "../components/ui/Loader";
 
 const ACTIVITY_FILTERS = [
   { key: "", label: "All Activity" },
@@ -152,10 +153,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+        <Loader text="Loading dashboard..." />
       </div>
     );
   }

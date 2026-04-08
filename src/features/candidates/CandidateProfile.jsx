@@ -189,7 +189,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
         </div>
 
         <div className="border-b border-gray-200 bg-white overflow-x-auto">
-          <div className="flex px-4 md:px-6 min-w-max">
+          <div className="flex px-4 md:px-6 w-full justify-around md:justify-start md:w-auto md:min-w-max">
             {[
               { key: "details", label: "Candidate Details", shortLabel: "Details", icon: (
                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

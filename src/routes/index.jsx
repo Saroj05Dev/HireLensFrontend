@@ -15,17 +15,18 @@ import JobDetailsPage from "../features/jobs/JobDetailsPage";
 import CandidateContainer from "../features/candidates/CandidateContainer";
 import InterviewTasksPage from "../features/interviews/InterviewTasksPage";
 import InterviewsContainer from "../features/interviews/InterviewsContainer";
+import Loader from "../components/ui/Loader";
 
 const AppRoutes = () => {
   const { isAuthenticated, loading, user } = useSelector((s) => s.auth);
   if (loading) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-6 text-gray-700 dark:text-gray-300 font-semibold text-lg animate-pulse">
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50">
+        <Loader size="lg" />
+        <p className="mt-6 text-gray-700 font-semibold text-lg">
           Connecting to server...
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center max-w-sm">
+        <p className="text-sm text-gray-500 mt-2 text-center max-w-sm">
           Please wait. Since we're on a free hosting tier, the server might be waking up. This can take up to a minute.
         </p>
       </div>
