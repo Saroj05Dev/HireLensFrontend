@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { getCandidateDecisionLogsApi, getCandidateInterviewsApi } from "./candidate.api";
 
@@ -48,6 +48,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [decisionLogs, setDecisionLogs] = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const contentRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const { user } = useSelector((state) => state.auth);
 
@@ -209,7 +210,10 @@ const CandidateProfile = ({ candidate, onClose }) => {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  if (contentRef.current) contentRef.current.scrollTop = 0;
+                }}
                 className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.key
                     ? "border-blue-600 text-blue-600"
@@ -224,7 +228,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
           </div>
         </div>
 
-        <div className="p-4 md:p-6 overflow-y-auto flex-1">
+        <div ref={contentRef} className="p-4 md:p-6 overflow-y-auto flex-1">
           {activeTab === "details" && (
             <div className="space-y-4 md:space-y-6">
               <div className="bg-gray-50 rounded-lg p-4 md:p-5 border border-gray-200">
