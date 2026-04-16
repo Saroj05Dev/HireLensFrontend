@@ -46,16 +46,10 @@ const STAGE_ICONS = {
 
 const getResumeOpenUrl = (resumeUrl) => {
   if (!resumeUrl) return "#";
-
-  const lowerUrl = resumeUrl.toLowerCase();
-  const isCloudinaryRaw =
-    lowerUrl.includes("res.cloudinary.com") &&
-    lowerUrl.includes("/raw/upload/");
-
-  if (isCloudinaryRaw) {
+  // Route all Cloudinary URLs through Google Docs Viewer so PDFs render in-browser
+  if (resumeUrl.includes("res.cloudinary.com")) {
     return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(resumeUrl)}`;
   }
-
   return resumeUrl;
 };
 
