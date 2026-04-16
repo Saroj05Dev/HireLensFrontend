@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { addCandidate } from "./candidateSlice";
@@ -5,17 +6,18 @@ import { addCandidate } from "./candidateSlice";
 const AddCandidate = ({ jobId, onClose }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.candidates);
+  const [selectedFileName, setSelectedFileName] = useState("");
   
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const onSubmit = async (data) => {
-    const candidateData = {
-      jobId,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      resumeUrl: data.resumeUrl,
-    };
+    const candidateData = new FormData();
+    candidateData.append("jobId", jobId);
+    candidateData.append("name", data.name);
+    if (data.email) candidateData.append("email", data.email);
+    if (data.phone) candidateData.append("phone", data.phone);
+    if (data.resumeUrl) candidateData.append("resumeUrl", data.resumeUrl);
+    if (data.resume?.[0]) candidateData.append("resume", data.resume[0]);
 
     const result = await dispatch(addCandidate(candidateData));
     
@@ -162,7 +164,44 @@ const AddCandidate = ({ jobId, onClose }) => {
 
             <div>
               <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5">
-                Resume URL <span className="text-gray-400 text-xs">(Optional)</span>
+                Upload Resume <span className="text-gray-400 text-xs">(Optional)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  {...register("resume", {
+                    validate: {
+                      fileSize: (files) => {
+                        if (!files?.[0]) return true;
+                        return files[0].size <= 5 * 1024 * 1024 || "File size must be 5MB or less";
+                      },
+                    },
+                    onChange: (event) => {
+                      const file = event?.target?.files?.[0];
+                      setSelectedFileName(file ? file.name : "");
+                    },
+                  })}
+                  className="w-full border-2 border-dashed border-gray-300 px-3 md:px-4 py-2.5 md:py-3 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                />
+              </div>
+              {selectedFileName && (
+                <p className="text-xs text-green-700 mt-1.5">Selected: {selectedFileName}</p>
+              )}
+              {errors.resume && (
+                <p className="text-red-600 text-xs md:text-sm mt-1 flex items-center gap-1">
+                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {errors.resume.message}
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1.5">Accepted formats: PDF, DOC, DOCX (max 5MB)</p>
+            </div>
+
+            <div>
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5">
+                Resume URL <span className="text-gray-400 text-xs">(Optional fallback)</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -180,7 +219,7 @@ const AddCandidate = ({ jobId, onClose }) => {
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Provide a publicly accessible URL to the candidate's resume
+                Upload a file above, or provide a publicly accessible resume URL
               </p>
             </div>
           </div>

@@ -2,7 +2,10 @@ import axiosInstance from "../../helpers/axiosInstance";
 
 // Add candidate to a job
 export const addCandidateApi = async (candidateData) => {
-  const response = await axiosInstance.post("/candidates", candidateData);
+  const isMultipart = candidateData instanceof FormData;
+  const response = await axiosInstance.post("/candidates", candidateData, {
+    headers: isMultipart ? { "Content-Type": "multipart/form-data" } : undefined,
+  });
   return response.data.data;
 };
 
