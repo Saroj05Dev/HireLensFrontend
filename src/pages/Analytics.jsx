@@ -225,24 +225,22 @@ const Analytics = () => {
                     <div className="w-32 shrink-0">
                       <span className="text-sm font-medium text-gray-700">{stage.name}</span>
                     </div>
-                    <div className="flex-1">
-                      <div className="relative">
-                        <div 
-                          className="h-12 rounded-lg transition-all duration-500 flex items-center justify-between px-4"
-                          style={{ 
-                            width: `${widthPercentage}%`,
-                            backgroundColor: stage.color,
-                            minWidth: '120px'
-                          }}
-                        >
-                          <span className="text-white font-bold">{stage.count}</span>
-                          {index > 0 && (
-                            <span className="text-white text-xs opacity-90">
-                              {conversionFromPrevious}% conversion
-                            </span>
-                          )}
-                        </div>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div 
+                        className="h-12 rounded-lg transition-all duration-500 flex items-center px-4"
+                        style={{ 
+                          width: `${widthPercentage}%`,
+                          backgroundColor: stage.color,
+                          minWidth: '60px'
+                        }}
+                      >
+                        <span className="text-white font-bold text-sm">{stage.count}</span>
                       </div>
+                      {index > 0 && (
+                        <span className="text-sm font-semibold text-gray-700 w-16 whitespace-nowrap">
+                          {conversionFromPrevious}%
+                        </span>
+                      )}
                     </div>
                   </div>
                   
