@@ -23,6 +23,21 @@ const getNextValidStages = (currentStage) => {
   return [...next, "REJECTED"];
 };
 
+const getResumeOpenUrl = (resumeUrl) => {
+  if (!resumeUrl) return "#";
+
+  const lowerUrl = resumeUrl.toLowerCase();
+  const isCloudinaryRaw =
+    lowerUrl.includes("res.cloudinary.com") &&
+    lowerUrl.includes("/raw/upload/");
+
+  if (isCloudinaryRaw) {
+    return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(resumeUrl)}`;
+  }
+
+  return resumeUrl;
+};
+
 const STAGE_COLORS = {
   APPLIED: "bg-gray-100 text-gray-700",
   SCREENING: "bg-yellow-100 text-yellow-700", 
@@ -221,7 +236,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
 
               {candidate.resumeUrl && (
                 <a
-                  href={candidate.resumeUrl}
+                  href={getResumeOpenUrl(candidate.resumeUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-700 p-1"
@@ -483,7 +498,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
           <div className="flex items-center gap-2">
             {candidate.resumeUrl && (
               <a
-                href={candidate.resumeUrl}
+                href={getResumeOpenUrl(candidate.resumeUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

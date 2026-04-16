@@ -44,6 +44,21 @@ const STAGE_ICONS = {
   )
 };
 
+const getResumeOpenUrl = (resumeUrl) => {
+  if (!resumeUrl) return "#";
+
+  const lowerUrl = resumeUrl.toLowerCase();
+  const isCloudinaryRaw =
+    lowerUrl.includes("res.cloudinary.com") &&
+    lowerUrl.includes("/raw/upload/");
+
+  if (isCloudinaryRaw) {
+    return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(resumeUrl)}`;
+  }
+
+  return resumeUrl;
+};
+
 const CandidateProfile = ({ candidate, onClose }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [decisionLogs, setDecisionLogs] = useState([]);
@@ -168,7 +183,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
           <div className="flex flex-row items-center gap-2 md:gap-3 flex-wrap">
             {candidate.resumeUrl && (
               <a
-                href={candidate.resumeUrl}
+                href={getResumeOpenUrl(candidate.resumeUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium shadow-sm"
@@ -288,7 +303,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
                         </div>
                       </div>
                       <a
-                        href={candidate.resumeUrl}
+                        href={getResumeOpenUrl(candidate.resumeUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium w-full sm:w-auto justify-center"
