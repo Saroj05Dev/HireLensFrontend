@@ -50,7 +50,11 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
   };
 
   const handleSelectEvent = (event) => {
-    onSelectInterview(event.resource);
+    const interview = event.resource;
+    // Only show feedback viewer for completed interviews
+    if (interview.status === 'COMPLETED') {
+      onSelectInterview(interview);
+    }
   };
 
   const eventStyleGetter = (event) => {
@@ -158,10 +162,17 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                   <div
                     key={interview._id}
                     onClick={() => {
-                      onSelectInterview(interview);
-                      setShowDayModal(false);
+                      // Only allow viewing feedback for completed interviews
+                      if (interview.status === 'COMPLETED') {
+                        onSelectInterview(interview);
+                        setShowDayModal(false);
+                      }
                     }}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    className={`bg-gray-50 border border-gray-200 rounded-lg p-4 transition-shadow ${
+                      interview.status === 'COMPLETED' 
+                        ? 'hover:shadow-md cursor-pointer' 
+                        : 'cursor-default opacity-75'
+                    }`}
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0">
@@ -206,6 +217,18 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Show message for pending interviews */}
+                    {interview.status === 'ASSIGNED' && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Awaiting feedback from interviewer
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
