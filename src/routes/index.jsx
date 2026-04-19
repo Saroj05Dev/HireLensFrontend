@@ -10,6 +10,7 @@ import ProfilePage from "../pages/ProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
 import Signup from "../features/auth/signup/Signup";
 import Login from "../features/auth/login/Login";
+import ForgotPassword from "../features/auth/forgot-password/ForgotPassword";
 import JobsPage from "../features/jobs/JobsPage";
 import JobDetailsPage from "../features/jobs/JobDetailsPage";
 import CandidateContainer from "../features/candidates/CandidateContainer";
@@ -52,6 +53,12 @@ const AppRoutes = () => {
         path="/login"
         element={
           !isAuthenticated ? <Login /> : <Navigate to={getDefaultRoute()} />
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          !isAuthenticated ? <ForgotPassword /> : <Navigate to={getDefaultRoute()} />
         }
       />
       
