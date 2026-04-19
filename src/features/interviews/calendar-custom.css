@@ -71,6 +71,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  pointer-events: auto;
 }
 
 .rbc-toolbar button:hover {
@@ -83,6 +84,11 @@
   background-color: #3b82f6;
   color: white;
   border-color: #3b82f6;
+}
+
+.rbc-toolbar button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .rbc-toolbar-label {

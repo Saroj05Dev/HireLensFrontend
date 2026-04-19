@@ -12,7 +12,7 @@ const locales = {
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek,
+  startOfWeek: () => startOfWeek(new Date(), { locale: enUS }),
   getDay,
   locales,
 });
@@ -108,7 +108,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
       </div>
 
       {/* Calendar */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6" style={{ height: '700px' }}>
+      <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6" style={{ height: '700px', position: 'relative', zIndex: 1 }}>
         <Calendar
           localizer={localizer}
           events={events}
@@ -122,6 +122,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
           defaultView="month"
           popup
           tooltipAccessor={(event) => `${event.title} at ${formatTime(event.start)}`}
+          style={{ height: '100%' }}
         />
       </div>
 
