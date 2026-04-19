@@ -35,7 +35,10 @@ const InterviewTasksPage = () => {
   // Set up real-time listeners
   useEffect(() => {
     const handleInterviewAssigned = (data) => {
-      dispatch(interviewAssignedRealtime({ ...data, currentUserId: user?.id }));
+      // Refetch interviews when a new one is assigned
+      if (data.interviewerId === user?.id) {
+        dispatch(getMyInterviews());
+      }
     };
 
     const handleFeedbackSubmitted = (data) => {
