@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff, Lock, User, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
 
 const AcceptInviteForm = ({ onSubmit, loading, error }) => {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
-  
-  const password = watch("password", "");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -81,24 +79,6 @@ const AcceptInviteForm = ({ onSubmit, loading, error }) => {
           <p className="text-sm text-red-600 mt-1.5 flex items-center gap-1">
             <span className="text-xs">⚠️</span> {errors.password.message}
           </p>
-        )}
-        
-        {/* Password Requirements */}
-        {!errors.password && (
-          <div className="mt-2 space-y-1">
-            <p className="text-xs text-gray-500 flex items-center gap-1.5">
-              <CheckCircle className={`h-3.5 w-3.5 ${password.length >= 8 ? "text-green-500" : "text-gray-300"}`} />
-              At least 8 characters
-            </p>
-            <p className="text-xs text-gray-500 flex items-center gap-1.5">
-              <CheckCircle className={`h-3.5 w-3.5 ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? "text-green-500" : "text-gray-300"}`} />
-              Mix of uppercase & lowercase
-            </p>
-            <p className="text-xs text-gray-500 flex items-center gap-1.5">
-              <CheckCircle className={`h-3.5 w-3.5 ${/\d/.test(password) ? "text-green-500" : "text-gray-300"}`} />
-              At least one number
-            </p>
-          </div>
         )}
       </div>
 
