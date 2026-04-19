@@ -20,6 +20,8 @@ const localizer = dateFnsLocalizer({
 const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showDayModal, setShowDayModal] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState('month');
 
   // Transform interviews into calendar events
   const events = useMemo(() => {
@@ -114,12 +116,15 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
           events={events}
           startAccessor="start"
           endAccessor="end"
+          date={currentDate}
+          view={currentView}
+          onNavigate={(date) => setCurrentDate(date)}
+          onView={(view) => setCurrentView(view)}
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
           selectable
           eventPropGetter={eventStyleGetter}
           views={['month', 'week', 'day']}
-          defaultView="month"
           popup
           tooltipAccessor={(event) => `${event.title} at ${formatTime(event.start)}`}
           style={{ height: '100%' }}
