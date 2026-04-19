@@ -7,25 +7,6 @@ const AcceptInviteForm = ({ onSubmit, loading, error }) => {
   const [showPassword, setShowPassword] = useState(false);
   
   const password = watch("password", "");
-  
-  // Password strength indicator
-  const getPasswordStrength = (pwd) => {
-    if (!pwd) return { strength: 0, label: "", color: "" };
-    
-    let strength = 0;
-    if (pwd.length >= 8) strength++;
-    if (pwd.length >= 12) strength++;
-    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
-    if (/\d/.test(pwd)) strength++;
-    if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
-    
-    if (strength <= 2) return { strength, label: "Weak", color: "bg-red-500" };
-    if (strength <= 3) return { strength, label: "Fair", color: "bg-yellow-500" };
-    if (strength <= 4) return { strength, label: "Good", color: "bg-blue-500" };
-    return { strength, label: "Strong", color: "bg-green-500" };
-  };
-  
-  const passwordStrength = getPasswordStrength(password);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -95,29 +76,6 @@ const AcceptInviteForm = ({ onSubmit, loading, error }) => {
             )}
           </button>
         </div>
-        
-        {/* Password Strength Indicator */}
-        {password && !errors.password && (
-          <div className="mt-2">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-600">Password strength:</span>
-              <span className={`text-xs font-semibold ${
-                passwordStrength.label === "Weak" ? "text-red-600" :
-                passwordStrength.label === "Fair" ? "text-yellow-600" :
-                passwordStrength.label === "Good" ? "text-blue-600" :
-                "text-green-600"
-              }`}>
-                {passwordStrength.label}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div
-                className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
-                style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
         
         {errors.password && (
           <p className="text-sm text-red-600 mt-1.5 flex items-center gap-1">
