@@ -2,13 +2,57 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { addCandidate } from "./candidateSlice";
+import { parseResumeApi } from "./candidate.api";
 
 const AddCandidate = ({ jobId, onClose }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.candidates);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [isParsingResume, setIsParsingResume] = useState(false);
+  const [resumeParseError, setResumeParseError] = useState("");
   
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm();
+
+  const handleResumeFileChange = async (event) => {
+    const file = event?.target?.files?.[0];
+    setSelectedFileName(file ? file.name : "");
+    setResumeParseError("");
+
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      return;
+    }
+
+    setIsParsingResume(true);
+
+    try {
+      const parsed = await parseResumeApi(file);
+
+      const currentName = getValues("name")?.trim();
+      const currentEmail = getValues("email")?.trim();
+      const currentPhone = getValues("phone")?.trim();
+
+      if (!currentName && parsed?.name) {
+        setValue("name", parsed.name, { shouldValidate: true, shouldDirty: true });
+      }
+
+      if (!currentEmail && parsed?.email) {
+        setValue("email", parsed.email, { shouldValidate: true, shouldDirty: true });
+      }
+
+      if (!currentPhone && parsed?.phone) {
+        setValue("phone", parsed.phone, { shouldValidate: true, shouldDirty: true });
+      }
+    } catch (error) {
+      setResumeParseError(
+        error.response?.data?.message ||
+          "Could not parse resume right now. You can still fill details manually."
+      );
+    } finally {
+      setIsParsingResume(false);
+    }
+  };
 
   const onSubmit = async (data) => {
     const candidateData = new FormData();
@@ -30,7 +74,7 @@ const AddCandidate = ({ jobId, onClose }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4 md:p-6">
+        <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
@@ -177,16 +221,19 @@ const AddCandidate = ({ jobId, onClose }) => {
                         return files[0].size <= 5 * 1024 * 1024 || "File size must be 5MB or less";
                       },
                     },
-                    onChange: (event) => {
-                      const file = event?.target?.files?.[0];
-                      setSelectedFileName(file ? file.name : "");
-                    },
+                    onChange: handleResumeFileChange,
                   })}
                   className="w-full border-2 border-dashed border-gray-300 px-3 md:px-4 py-2.5 md:py-3 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                 />
               </div>
               {selectedFileName && (
                 <p className="text-xs text-green-700 mt-1.5">Selected: {selectedFileName}</p>
+              )}
+              {isParsingResume && (
+                <p className="text-xs text-blue-700 mt-1.5">Parsing resume and auto-filling details...</p>
+              )}
+              {resumeParseError && (
+                <p className="text-red-600 text-xs md:text-sm mt-1">{resumeParseError}</p>
               )}
               {errors.resume && (
                 <p className="text-red-600 text-xs md:text-sm mt-1 flex items-center gap-1">
@@ -234,6 +281,9 @@ const AddCandidate = ({ jobId, onClose }) => {
                 <p className="text-xs md:text-sm text-blue-900 font-medium mb-1">Quick Tip</p>
                 <p className="text-xs md:text-sm text-blue-800">
                   The candidate will be added to the "Applied" stage by default. You can move them to other stages later.
+                </p>
+                <p className="text-xs md:text-sm text-blue-800 mt-1">
+                  Candidate details are auto-filled as soon as you upload a PDF resume.
                 </p>
               </div>
             </div>

@@ -58,3 +58,15 @@ export const reopenCandidateApi = async (candidateId, { note } = {}) => {
   const response = await axiosInstance.patch(`/candidates/${candidateId}/reopen`, { note });
   return response.data.data;
 };
+
+// Parse uploaded resume and extract basic contact details
+export const parseResumeApi = async (resumeFile) => {
+  const formData = new FormData();
+  formData.append("resume", resumeFile);
+
+  const response = await axiosInstance.post("/candidates/parse-resume", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return response.data.data;
+};
