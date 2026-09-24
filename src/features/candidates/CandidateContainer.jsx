@@ -154,7 +154,7 @@ const CandidateContainer = () => {
               >
                 <option value="">All Jobs</option>
                 {jobs.map((job) => (
-                  <option key={job.id || job._id} value={job.id || job._id}>
+                  <option key={job.id} value={job.id}>
                     {job.title}
                   </option>
                 ))}
@@ -229,7 +229,7 @@ const CandidateContainer = () => {
             )}
             {filters.jobId && (
               <span className="inline-flex items-center gap-1 px-2 md:px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm">
-                Job: {jobs.find(j => (j.id || j._id) === filters.jobId)?.title}
+                Job: {jobs.find(j => j.id === filters.jobId)?.title}
                 <button
                   onClick={() => handleFilterChange("jobId", "")}
                   className="hover:bg-purple-200 rounded-full p-0.5"
@@ -286,7 +286,7 @@ const CandidateContainer = () => {
           }>
             {filteredCandidates.map((candidate) => (
               <CandidateCard
-                key={candidate._id}
+                key={candidate.id}
                 candidate={candidate}
                 onViewProfile={handleViewProfile}
                 viewMode={viewMode}

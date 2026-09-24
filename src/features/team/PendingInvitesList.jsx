@@ -11,7 +11,7 @@ const PendingInvitesList = () => {
     
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      setCopiedId(invite._id);
+      setCopiedId(invite.id);
       
       // Clear success message after 3 seconds
       setTimeout(() => setCopiedId(null), 3000);
@@ -89,11 +89,11 @@ const PendingInvitesList = () => {
         ) : (
           pendingInvites.map((invite) => {
             const expirationStatus = getExpirationStatus(invite.expiresAt);
-            const isCopied = copiedId === invite._id;
+            const isCopied = copiedId === invite.id;
 
             return (
               <div
-                key={invite._id}
+                key={invite.id}
                 className={`p-3 md:p-4 transition-colors ${
                   expirationStatus.isExpired
                     ? "bg-gray-50 opacity-60"

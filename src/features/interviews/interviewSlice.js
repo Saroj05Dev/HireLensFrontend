@@ -140,7 +140,7 @@ const interviewSlice = createSlice({
       
       // Update interview status in all lists
       const updateInterviewStatus = (interview) => {
-        if (interview._id === interviewId) {
+        if (interview.id === interviewId) {
           interview.status = "COMPLETED";
         }
       };
@@ -215,7 +215,7 @@ const interviewSlice = createSlice({
         
         // Update interview status to COMPLETED
         const updateStatus = (interview) => {
-          if (interview._id === interviewId) {
+          if (interview.id === interviewId) {
             interview.status = "COMPLETED";
           }
         };
@@ -253,7 +253,7 @@ const interviewSlice = createSlice({
         const { interviewId, status } = action.payload;
         
         const updateStatus = (interview) => {
-          if (interview._id === interviewId) {
+          if (interview.id === interviewId) {
             interview.status = status;
           }
         };

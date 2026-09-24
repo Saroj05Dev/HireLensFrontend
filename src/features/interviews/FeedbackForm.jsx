@@ -43,7 +43,7 @@ const FeedbackForm = ({ interview, onClose }) => {
   
   const watchedRecommendation = watch("recommendation");
   const watchedRating = watch("rating");
-  const isSubmitting = submitLoading[interview._id];
+  const isSubmitting = submitLoading[interview.id];
 
   const onSubmit = async (data) => {
     const feedbackData = {
@@ -55,7 +55,7 @@ const FeedbackForm = ({ interview, onClose }) => {
     };
 
     const result = await dispatch(submitFeedback({
-      interviewId: interview._id,
+      interviewId: interview.id,
       feedbackData
     }));
     
@@ -79,7 +79,7 @@ const FeedbackForm = ({ interview, onClose }) => {
               <div className="flex-1 min-w-0">
                 <h2 className="text-base md:text-xl font-bold text-gray-900">Submit Interview Feedback</h2>
                 <p className="text-xs md:text-sm text-gray-600 mt-0.5 truncate">
-                  {interview.candidateId?.name} • {interview.jobId?.title}
+                  {interview.candidate?.name} • {interview.job?.title}
                 </p>
               </div>
             </div>

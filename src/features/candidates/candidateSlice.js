@@ -117,21 +117,21 @@ const candidateSlice = createSlice({
       const { candidateId, toStage } = action.payload;
       
       // Update in main list
-      const candidate = state.list.find(c => c._id === candidateId);
+      const candidate = state.list.find(c => c.id === candidateId);
       if (candidate) {
         candidate.currentStage = toStage;
       }
 
       // Update in job-specific lists
       Object.keys(state.candidatesByJob).forEach(jobId => {
-        const jobCandidate = state.candidatesByJob[jobId].find(c => c._id === candidateId);
+        const jobCandidate = state.candidatesByJob[jobId].find(c => c.id === candidateId);
         if (jobCandidate) {
           jobCandidate.currentStage = toStage;
         }
       });
 
       // Update selected candidate if it's the same one
-      if (state.selectedCandidate?._id === candidateId) {
+      if (state.selectedCandidate?.id === candidateId) {
         state.selectedCandidate.currentStage = toStage;
       }
     },
@@ -197,21 +197,21 @@ const candidateSlice = createSlice({
         state.stageUpdateLoading[candidateId] = false;
 
         // Update in main list
-        const candidate = state.list.find(c => c._id === candidateId);
+        const candidate = state.list.find(c => c.id === candidateId);
         if (candidate) {
           candidate.currentStage = newStage;
         }
 
         // Update in job-specific lists
         Object.keys(state.candidatesByJob).forEach(jobId => {
-          const jobCandidate = state.candidatesByJob[jobId].find(c => c._id === candidateId);
+          const jobCandidate = state.candidatesByJob[jobId].find(c => c.id === candidateId);
           if (jobCandidate) {
             jobCandidate.currentStage = newStage;
           }
         });
 
         // Update selected candidate if it's the same one
-        if (state.selectedCandidate?._id === candidateId) {
+        if (state.selectedCandidate?.id === candidateId) {
           state.selectedCandidate.currentStage = newStage;
         }
       })
@@ -232,11 +232,11 @@ const candidateSlice = createSlice({
 
         const applyChange = (c) => { if (c) c.currentStage = newStage; };
 
-        applyChange(state.list.find(c => c._id === candidateId));
+        applyChange(state.list.find(c => c.id === candidateId));
         Object.values(state.candidatesByJob).forEach(list =>
-          applyChange(list.find(c => c._id === candidateId))
+          applyChange(list.find(c => c.id === candidateId))
         );
-        if (state.selectedCandidate?._id === candidateId) {
+        if (state.selectedCandidate?.id === candidateId) {
           state.selectedCandidate.currentStage = newStage;
         }
       })

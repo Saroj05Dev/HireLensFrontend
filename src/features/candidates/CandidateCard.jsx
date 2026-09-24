@@ -58,7 +58,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
   
   const stageMenuRef = useRef(null);
 
-  const isUpdating = stageUpdateLoading[candidate._id];
+  const isUpdating = stageUpdateLoading[candidate.id];
   const canAssignInterview = user?.role === "RECRUITER" && candidate.currentStage === "SCREENING";
   const canReopen = user?.role === "RECRUITER" && candidate.currentStage === "REJECTED";
   const validNextStages = getNextValidStages(candidate.currentStage);
@@ -106,7 +106,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
   const handleStageUpdate = async () => {
     setStageError("");
     const result = await dispatch(updateCandidateStage({
-      candidateId: candidate._id,
+      candidateId: candidate.id,
       newStage: selectedStage,
       note: note.trim()
     }));
@@ -131,7 +131,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
   const handleReopen = async () => {
     setStageError("");
     const result = await dispatch(reopenCandidate({
-      candidateId: candidate._id,
+      candidateId: candidate.id,
       note: reopenNote.trim()
     }));
     if (reopenCandidate.rejected.match(result)) {
@@ -148,7 +148,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
     
     setIsDragging(true);
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("candidateId", candidate._id);
+    e.dataTransfer.setData("candidateId", candidate.id);
     e.dataTransfer.setData("currentStage", candidate.currentStage);
   };
 

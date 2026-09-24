@@ -183,7 +183,7 @@ const PipelineBoard = ({ jobTitle }) => {
     if (currentStage === newStage) return;
     
     // Find the candidate
-    const candidate = candidates.find(c => c._id === candidateId);
+    const candidate = candidates.find(c => c.id === candidateId);
     if (!candidate) return;
 
     // Validate the transition before showing modal
@@ -211,7 +211,7 @@ const PipelineBoard = ({ jobTitle }) => {
     setDropError("");
     
     const result = await dispatch(updateCandidateStage({
-      candidateId: draggedCandidate._id,
+      candidateId: draggedCandidate.id,
       newStage: draggedCandidate.newStage,
       note: dropNote.trim()
     }));
@@ -387,7 +387,7 @@ const PipelineBoard = ({ jobTitle }) => {
                     ) : (
                       stageCandidates.map((candidate) => (
                         <CandidateCard
-                          key={candidate._id}
+                          key={candidate.id}
                           candidate={candidate}
                           onViewProfile={handleViewProfile}
                           isDraggable={canDragCandidates}

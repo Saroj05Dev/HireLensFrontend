@@ -209,7 +209,7 @@ const ActivityPage = () => {
           ) : (
             <>
               {filteredActivity.map((activity, index) => (
-                <div key={activity._id || index} className="p-4 md:p-5 hover:bg-gray-50 transition-colors">
+                <div key={activity.id || index} className="p-4 md:p-5 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start gap-3 md:gap-4">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getActionColor(activity.actionType)}`}>
                       {getActionIcon(activity.actionType)}

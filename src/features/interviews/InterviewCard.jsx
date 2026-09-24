@@ -15,14 +15,13 @@ const InterviewCard = ({ interview, onSubmitFeedback, onViewFeedback, showCandid
   const isInterviewer = user?.role === "INTERVIEWER";
   
   // Handle both populated object and string ID
-  const interviewerId = typeof interview.interviewerId === 'object' 
-    ? interview.interviewerId?._id 
+  const interviewerId = typeof interview.interviewer === 'object' 
+    ? interview.interviewer?.id 
     : interview.interviewerId;
   
-  // Handle both user.id and user._id
-  const userId = user?.id || user?._id;
+  const userId = user?.id;
   const isMyInterview = interviewerId === userId;
-  const hasFeedback = feedbackByInterview[interview._id] || interview.status === "COMPLETED";
+  const hasFeedback = feedbackByInterview[interview.id] || interview.status === "COMPLETED";
   const canSubmitFeedback = isInterviewer && isMyInterview && interview.status === "ASSIGNED";
 
   const formatDate = (dateString) => {
@@ -36,16 +35,16 @@ const InterviewCard = ({ interview, onSubmitFeedback, onViewFeedback, showCandid
         <div className="flex-1">
           {showCandidate && (
             <h4 className="font-medium text-sm mb-1">
-              {interview.candidateId?.name || "Unknown Candidate"}
+              {interview.candidate?.name || "Unknown Candidate"}
             </h4>
           )}
           
           <p className="text-xs text-gray-600 mb-1">
-            Job: {interview.jobId?.title || "Unknown Job"}
+            Job: {interview.job?.title || "Unknown Job"}
           </p>
           
           <p className="text-xs text-gray-600 mb-2">
-            Interviewer: {interview.interviewerId?.name || "Unassigned"}
+            Interviewer: {interview.interviewer?.name || "Unassigned"}
           </p>
           
           <p className="text-xs text-gray-500">
@@ -93,8 +92,8 @@ const InterviewCard = ({ interview, onSubmitFeedback, onViewFeedback, showCandid
           {interview.notes && (
             <p><span className="font-medium">Notes:</span> {interview.notes}</p>
           )}
-          {showCandidate && interview.candidateId?.email && (
-            <p><span className="font-medium">Candidate Email:</span> {interview.candidateId.email}</p>
+          {showCandidate && interview.candidate?.email && (
+            <p><span className="font-medium">Candidate Email:</span> {interview.candidate.email}</p>
           )}
         </div>
       )}

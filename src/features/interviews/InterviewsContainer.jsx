@@ -58,7 +58,7 @@ const InterviewsContainer = () => {
     const handleFeedbackSubmitted = (data) => {
       // Update the specific interview status
       setInterviews(prev => prev.map(interview => 
-        interview._id === data.interviewId 
+        interview.id === data.interviewId 
           ? { ...interview, status: "COMPLETED" }
           : interview
       ));
@@ -343,22 +343,22 @@ const InterviewsContainer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {interviews.map((interview) => (
             <div
-              key={interview._id}
+              key={interview.id}
               className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 hover:shadow-lg transition-shadow"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-3 md:mb-4 gap-3">
                 <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md shrink-0">
-                    {getInitials(interview.candidateId?.name)}
+                    {getInitials(interview.candidate?.name)}
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1 truncate">
-                      {interview.candidateId?.name || "Unknown Candidate"}
+                      {interview.candidate?.name || "Unknown Candidate"}
                     </h3>
                     <p className="text-xs md:text-sm text-gray-600 mb-2 truncate">
-                      {interview.jobId?.title || "Unknown Job"}
+                      {interview.job?.title || "Unknown Job"}
                     </p>
                   </div>
                 </div>
@@ -379,7 +379,7 @@ const InterviewsContainer = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span className="font-medium">Interviewer:</span>
-                  <span className="truncate">{interview.interviewerId?.name || "Unassigned"}</span>
+                  <span className="truncate">{interview.interviewer?.name || "Unassigned"}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
@@ -390,12 +390,12 @@ const InterviewsContainer = () => {
                   <span className="truncate">{formatDate(interview.scheduledAt)}</span>
                 </div>
 
-                {interview.candidateId?.email && (
+                {interview.candidate?.email && (
                   <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                     <svg className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span className="truncate">{interview.candidateId.email}</span>
+                    <span className="truncate">{interview.candidate.email}</span>
                   </div>
                 )}
               </div>

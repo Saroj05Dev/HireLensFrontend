@@ -144,7 +144,7 @@ const Dashboard = () => {
   // Calculate metrics
   const totalCandidatesInStages = candidatesByStage.reduce((sum, stage) => sum + stage.count, 0);
   const conversionRate = stats.totalCandidates > 0 
-    ? ((candidatesByStage.find(s => s._id === "HIRED")?.count || 0) / stats.totalCandidates * 100).toFixed(1)
+    ? ((candidatesByStage.find(s => s.stage === "HIRED")?.count || 0) / stats.totalCandidates * 100).toFixed(1)
     : 0;
   const interviewCompletionRate = stats.totalInterviews > 0
     ? (((stats.totalInterviews - stats.pendingInterviews) / stats.totalInterviews) * 100).toFixed(1)
@@ -292,9 +292,9 @@ const Dashboard = () => {
                   : 0;
                 
                 return (
-                  <div key={stage._id}>
+                  <div key={stage.stage}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-700">{stage._id}</span>
+                      <span className="text-sm font-medium text-gray-700">{stage.stage}</span>
                       <span className="text-sm text-gray-600">{stage.count} ({percentage}%)</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -302,7 +302,7 @@ const Dashboard = () => {
                         className="h-2 rounded-full transition-all duration-500"
                         style={{ 
                           width: `${percentage}%`,
-                          backgroundColor: STAGE_COLORS[stage._id] || "#6B7280"
+                          backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280"
                         }}
                       ></div>
                     </div>
@@ -324,15 +324,15 @@ const Dashboard = () => {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {candidatesByStage.map((stage) => (
                     <div 
-                      key={stage._id}
+                      key={stage.stage}
                       className="flex items-center gap-2 p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
                     >
                       <div 
                         className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: STAGE_COLORS[stage._id] || "#6B7280" }}
+                        style={{ backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280" }}
                       ></div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-gray-700 truncate">{stage._id}</p>
+                        <p className="text-xs font-medium text-gray-700 truncate">{stage.stage}</p>
                         <p className="text-lg font-bold text-gray-900">{stage.count}</p>
                       </div>
                     </div>
@@ -396,7 +396,7 @@ const Dashboard = () => {
             </div>
           ) : (
             filteredActivity.map((activity, index) => (
-              <div key={activity._id || index} className="p-4 hover:bg-gray-50 transition-colors">
+              <div key={activity.id || index} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start gap-4">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getActionColor(activity.actionType)}`}>
                     {getActionIcon(activity.actionType)}

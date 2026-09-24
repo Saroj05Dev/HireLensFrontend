@@ -128,7 +128,7 @@ const notificationSlice = createSlice({
 
             // Mark as read
             .addCase(markAsRead.fulfilled, (state, action) => {
-                const notification = state.notifications.find(n => n._id === action.payload);
+                const notification = state.notifications.find(n => n.id === action.payload);
                 if (notification && !notification.isRead) {
                     notification.isRead = true;
                     state.unreadCount = Math.max(0, state.unreadCount - 1);
@@ -143,11 +143,11 @@ const notificationSlice = createSlice({
 
             // Delete notification
             .addCase(deleteNotification.fulfilled, (state, action) => {
-                const notification = state.notifications.find(n => n._id === action.payload);
+                const notification = state.notifications.find(n => n.id === action.payload);
                 if (notification && !notification.isRead) {
                     state.unreadCount = Math.max(0, state.unreadCount - 1);
                 }
-                state.notifications = state.notifications.filter(n => n._id !== action.payload);
+                state.notifications = state.notifications.filter(n => n.id !== action.payload);
             })
 
             // Delete all notifications

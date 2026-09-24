@@ -26,8 +26,8 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
   // Transform interviews into calendar events
   const events = useMemo(() => {
     return interviews.map(interview => ({
-      id: interview._id,
-      title: `${interview.candidateId?.name || 'Unknown'} - ${interview.jobId?.title || 'Unknown Job'}`,
+      id: interview.id,
+      title: `${interview.candidate?.name || 'Unknown'} - ${interview.job?.title || 'Unknown Job'}`,
       start: new Date(interview.scheduledAt),
       end: new Date(new Date(interview.scheduledAt).getTime() + 60 * 60 * 1000), // 1 hour duration
       resource: interview,
@@ -166,7 +166,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
               <div className="space-y-4">
                 {getInterviewsForDate(selectedDate).map((interview) => (
                   <div
-                    key={interview._id}
+                    key={interview.id}
                     onClick={() => {
                       // Only allow viewing feedback for completed interviews
                       if (interview.status === 'COMPLETED') {
@@ -182,13 +182,13 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0">
-                        {getInitials(interview.candidateId?.name)}
+                        {getInitials(interview.candidate?.name)}
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <h4 className="text-base font-semibold text-gray-900 truncate">
-                            {interview.candidateId?.name || "Unknown Candidate"}
+                            {interview.candidate?.name || "Unknown Candidate"}
                           </h4>
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full shrink-0 ${
                             interview.status === "COMPLETED"
@@ -204,7 +204,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            <span className="truncate">{interview.jobId?.title || "Unknown Job"}</span>
+                            <span className="truncate">{interview.job?.title || "Unknown Job"}</span>
                           </div>
 
                           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -218,7 +218,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            <span className="truncate">{interview.interviewerId?.name || "Unassigned"}</span>
+                            <span className="truncate">{interview.interviewer?.name || "Unassigned"}</span>
                           </div>
                         </div>
                       </div>

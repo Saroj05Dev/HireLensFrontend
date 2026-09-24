@@ -76,8 +76,8 @@ const Analytics = () => {
 
   // Calculate metrics
   const totalCandidates = candidatesByStage.reduce((sum, stage) => sum + stage.count, 0);
-  const hiredCount = candidatesByStage.find(s => s._id === "HIRED")?.count || 0;
-  const rejectedCount = candidatesByStage.find(s => s._id === "REJECTED")?.count || 0;
+  const hiredCount = candidatesByStage.find(s => s.stage === "HIRED")?.count || 0;
+  const rejectedCount = candidatesByStage.find(s => s.stage === "REJECTED")?.count || 0;
   const activeCount = totalCandidates - hiredCount - rejectedCount;
   
   const conversionRate = totalCandidates > 0 ? ((hiredCount / totalCandidates) * 100).toFixed(1) : 0;
@@ -87,7 +87,7 @@ const Analytics = () => {
   const calculateDropOff = () => {
     const stageMap = {};
     candidatesByStage.forEach(stage => {
-      stageMap[stage._id] = stage.count;
+      stageMap[stage.stage] = stage.count;
     });
 
     const dropOffs = [];
@@ -119,7 +119,7 @@ const Analytics = () => {
   const getFunnelData = () => {
     const orderedStages = STAGE_ORDER.filter(stage => stage !== "REJECTED");
     return orderedStages.map(stageName => {
-      const stage = candidatesByStage.find(s => s._id === stageName);
+      const stage = candidatesByStage.find(s => s.stage === stageName);
       return {
         name: stageName,
         count: stage?.count || 0,
@@ -326,14 +326,14 @@ const Analytics = () => {
                 : 0;
               
               return (
-                <div key={stage._id}>
+                <div key={stage.stage}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: STAGE_COLORS[stage._id] }}
+                        style={{ backgroundColor: STAGE_COLORS[stage.stage] }}
                       ></div>
-                      <span className="text-sm font-medium text-gray-700">{stage._id}</span>
+                      <span className="text-sm font-medium text-gray-700">{stage.stage}</span>
                     </div>
                     <span className="text-sm text-gray-600">
                       {stage.count} ({percentage}%)
@@ -344,7 +344,7 @@ const Analytics = () => {
                       className="h-2 rounded-full transition-all duration-500"
                       style={{ 
                         width: `${percentage}%`,
-                        backgroundColor: STAGE_COLORS[stage._id]
+                        backgroundColor: STAGE_COLORS[stage.stage]
                       }}
                     ></div>
                   </div>

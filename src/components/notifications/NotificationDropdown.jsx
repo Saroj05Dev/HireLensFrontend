@@ -185,11 +185,11 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             <div className="divide-y divide-gray-100">
               {notifications.map((notification) => (
                 <div
-                  key={notification._id}
+                  key={notification.id}
                   className={`p-3 md:p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                     !notification.isRead ? 'bg-blue-50' : ''
                   }`}
-                  onClick={(e) => !notification.isRead && handleMarkAsRead(notification._id, e)}
+                  onClick={(e) => !notification.isRead && handleMarkAsRead(notification.id, e)}
                 >
                   <div className="flex items-start gap-2 md:gap-3">
                     {getNotificationIcon(notification.type)}
@@ -205,7 +205,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                       <div className="flex items-center justify-between mt-2 gap-2">
                         <span className="text-xs text-gray-400">{formatTime(notification.createdAt)}</span>
                         <button
-                          onClick={(e) => handleDelete(notification._id, e)}
+                          onClick={(e) => handleDelete(notification.id, e)}
                           className="text-xs text-red-600 hover:text-red-700 font-medium shrink-0"
                         >
                           Delete

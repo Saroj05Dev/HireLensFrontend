@@ -40,14 +40,14 @@ const FeedbackViewer = ({ interview, onClose }) => {
   const dispatch = useDispatch();
   const { feedbackByInterview, feedbackLoading } = useSelector((state) => state.interviews);
   
-  const feedback = feedbackByInterview[interview._id];
-  const loading = feedbackLoading[interview._id];
+  const feedback = feedbackByInterview[interview.id];
+  const loading = feedbackLoading[interview.id];
 
   useEffect(() => {
     if (!feedback && !loading) {
-      dispatch(getInterviewFeedback(interview._id));
+      dispatch(getInterviewFeedback(interview.id));
     }
-  }, [dispatch, interview._id, feedback, loading]);
+  }, [dispatch, interview.id, feedback, loading]);
 
   const renderStars = (rating) => {
     return (
@@ -84,7 +84,7 @@ const FeedbackViewer = ({ interview, onClose }) => {
               <div className="flex-1 min-w-0">
                 <h2 className="text-base md:text-xl font-bold text-gray-900 truncate">Interview Feedback</h2>
                 <p className="text-xs md:text-sm text-gray-600 mt-0.5 truncate">
-                  {interview.candidateId?.name} • {interview.jobId?.title}
+                  {interview.candidate?.name} • {interview.job?.title}
                 </p>
               </div>
             </div>
@@ -119,11 +119,11 @@ const FeedbackViewer = ({ interview, onClose }) => {
               <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
                 <div className="flex items-center gap-2 md:gap-3">
                   <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm md:text-base shrink-0">
-                    {interview.interviewerId?.name?.charAt(0).toUpperCase()}
+                    {interview.interviewer?.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs md:text-sm font-semibold text-gray-900 truncate">
-                      {interview.interviewerId?.name}
+                      {interview.interviewer?.name}
                     </p>
                     <p className="text-xs text-gray-500">Interviewer</p>
                   </div>

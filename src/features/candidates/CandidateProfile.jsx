@@ -67,12 +67,12 @@ const CandidateProfile = ({ candidate, onClose }) => {
     } else if (activeTab === "interviews") {
       loadInterviews();
     }
-  }, [activeTab, candidate._id]);
+  }, [activeTab, candidate.id]);
 
   const loadDecisionLogs = async () => {
     setLoading(true);
     try {
-      const logs = await getCandidateDecisionLogsApi(candidate._id);
+      const logs = await getCandidateDecisionLogsApi(candidate.id);
       setDecisionLogs(logs);
     } catch (error) {
       console.error("Failed to load decision logs:", error);
@@ -84,7 +84,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
   const loadInterviews = async () => {
     setLoading(true);
     try {
-      const interviewData = await getCandidateInterviewsApi(candidate._id);
+      const interviewData = await getCandidateInterviewsApi(candidate.id);
       setInterviews(interviewData);
     } catch (error) {
       console.error("Failed to load interviews:", error);
@@ -438,7 +438,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
               ) : (
                 <div className="space-y-3 md:space-y-4">
                   {interviews.map((interview) => (
-                    <div key={interview._id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:shadow-md transition-shadow">
+                    <div key={interview.id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:shadow-md transition-shadow">
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-3">
                         <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
                           <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
@@ -448,10 +448,10 @@ const CandidateProfile = ({ candidate, onClose }) => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs md:text-sm font-semibold text-gray-900 truncate">
-                              {interview.interviewerId?.name || "Interviewer TBD"}
+                              {interview.interviewer?.name || "Interviewer TBD"}
                             </p>
                             <p className="text-xs md:text-sm text-gray-600 mt-1 truncate">
-                              {interview.interviewerId?.email || "Not assigned yet"}
+                              {interview.interviewer?.email || "Not assigned yet"}
                             </p>
                           </div>
                         </div>

@@ -62,8 +62,8 @@ const InterviewTasksPage = () => {
     if (!searchQuery) return interviews;
     
     return interviews.filter(interview => {
-      const candidateName = interview.candidateId?.name?.toLowerCase() || '';
-      const jobTitle = interview.jobId?.title?.toLowerCase() || '';
+      const candidateName = interview.candidate?.name?.toLowerCase() || '';
+      const jobTitle = interview.job?.title?.toLowerCase() || '';
       return candidateName.includes(searchQuery) || jobTitle.includes(searchQuery);
     });
   };
@@ -265,23 +265,23 @@ const InterviewTasksPage = () => {
           ) : (
             <div className="space-y-3 md:space-y-4">
               {displayedInterviews.map((interview) => {
-                const hasFeedback = feedbackByInterview[interview._id] || interview.status === "COMPLETED";
+                const hasFeedback = feedbackByInterview[interview.id] || interview.status === "COMPLETED";
                 
                 return (
                   <div
-                    key={interview._id}
+                    key={interview.id}
                     className="bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:shadow-md transition-shadow"
                   >
                     <div className="flex flex-col md:flex-row items-start justify-between gap-3 md:gap-4">
                       {/* Candidate Info */}
                       <div className="flex items-start gap-3 md:gap-4 flex-1 w-full md:w-auto">
                         <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md shrink-0">
-                          {getInitials(interview.candidateId?.name || "?")}
+                          {getInitials(interview.candidate?.name || "?")}
                         </div>
                         
                         <div className="flex-1 min-w-0">
                           <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1 truncate">
-                            {interview.candidateId?.name || "Unknown Candidate"}
+                            {interview.candidate?.name || "Unknown Candidate"}
                           </h3>
                           
                           <div className="space-y-1.5 md:space-y-2">
@@ -289,7 +289,7 @@ const InterviewTasksPage = () => {
                               <svg className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                               </svg>
-                              <span className="font-medium truncate">{interview.jobId?.title || "Unknown Job"}</span>
+                              <span className="font-medium truncate">{interview.job?.title || "Unknown Job"}</span>
                             </div>
                             
                             <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
@@ -299,12 +299,12 @@ const InterviewTasksPage = () => {
                               <span className="truncate">{formatDate(interview.scheduledAt)}</span>
                             </div>
 
-                            {interview.candidateId?.email && (
+                            {interview.candidate?.email && (
                               <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span className="truncate">{interview.candidateId.email}</span>
+                                <span className="truncate">{interview.candidate.email}</span>
                               </div>
                             )}
                           </div>

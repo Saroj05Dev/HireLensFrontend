@@ -37,7 +37,7 @@ const AssignInterview = ({ candidate, onClose }) => {
 
   useEffect(() => {
     if (watchInterviewerId) {
-      const interviewer = interviewers.find(i => i._id === watchInterviewerId);
+      const interviewer = interviewers.find(i => i.id === watchInterviewerId);
       setSelectedInterviewer(interviewer);
     } else {
       setSelectedInterviewer(null);
@@ -48,7 +48,7 @@ const AssignInterview = ({ candidate, onClose }) => {
     setError(null);
     
     const interviewData = {
-      candidateId: candidate._id,
+      candidateId: candidate.id,
       interviewerId: data.interviewerId,
       scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
     };
@@ -168,7 +168,7 @@ const AssignInterview = ({ candidate, onClose }) => {
                   >
                     <option value="">Choose an interviewer...</option>
                     {interviewers.map((interviewer) => (
-                      <option key={interviewer._id} value={interviewer._id}>
+                      <option key={interviewer.id} value={interviewer.id}>
                         {interviewer.name} - {interviewer.email}
                       </option>
                     ))}

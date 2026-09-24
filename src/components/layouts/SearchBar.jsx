@@ -117,8 +117,8 @@ const SearchBar = () => {
                   </div>
                   {searchResults.candidates.map((candidate) => (
                     <button
-                      key={candidate._id}
-                      onClick={() => handleSearchResultClick('candidate', candidate._id)}
+                      key={candidate.id}
+                      onClick={() => handleSearchResultClick('candidate', candidate.id)}
                       className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg flex items-center gap-3 transition-colors"
                     >
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shrink-0">
@@ -150,8 +150,8 @@ const SearchBar = () => {
                   </div>
                   {searchResults.jobs.map((job) => (
                     <button
-                      key={job.id || job._id}
-                      onClick={() => handleSearchResultClick('job', job.id || job._id)}
+                      key={job.id}
+                      onClick={() => handleSearchResultClick('job', job.id)}
                       className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg flex items-center gap-3 transition-colors"
                     >
                       <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
