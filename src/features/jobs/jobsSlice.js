@@ -80,7 +80,27 @@ const jobSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearJobsCache: (state) => {
+      state.list = [];
+      state.loading = false;
+      state.error = null;
+    },
+    updateJobCandidateCount: (state, action) => {
+      const { jobId, candidateCount } = action.payload;
+      const job = state.list.find(job => job.id === jobId);
+      if (job) {
+        job.candidateCount = candidateCount;
+      }
+    },
+    incrementJobCandidateCount: (state, action) => {
+      const { jobId } = action.payload;
+      const job = state.list.find(job => job.id === jobId);
+      if (job) {
+        job.candidateCount = (job.candidateCount || 0) + 1;
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchJobs.pending, (state) => {
@@ -121,4 +141,5 @@ const jobSlice = createSlice({
     },
 });
 
+export const { clearJobsCache, updateJobCandidateCount, incrementJobCandidateCount } = jobSlice.actions;
 export default jobSlice.reducer;

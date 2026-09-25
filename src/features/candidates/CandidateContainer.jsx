@@ -63,7 +63,11 @@ const CandidateContainer = () => {
   const filteredCandidates = candidates.filter(candidate => {
     const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    
+    const matchesStage = !filters.stage || candidate.currentStage === filters.stage;
+    const matchesJob = !filters.jobId || candidate.jobId === filters.jobId;
+    
+    return matchesSearch && matchesStage && matchesJob;
   });
 
   const getStageCount = (stage) => {

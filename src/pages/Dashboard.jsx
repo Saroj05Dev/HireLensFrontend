@@ -411,10 +411,10 @@ const Dashboard = () => {
                           <span className="text-gray-600">{activity.note}</span>
                         </p>
                         
-                        {activity.candidateId && (
+                        {activity.candidate && (
                           <p className="text-xs text-gray-500 mt-1">
-                            Candidate: {activity.candidateId.name}
-                            {activity.jobId && ` • Job: ${activity.jobId.title}`}
+                            Candidate: {activity.candidate.name}
+                            {activity.job && ` • Job: ${activity.job.title}`}
                           </p>
                         )}
                       </div>

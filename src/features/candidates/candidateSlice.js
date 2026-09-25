@@ -152,6 +152,8 @@ const candidateSlice = createSlice({
         if (state.candidatesByJob[jobId]) {
           state.candidatesByJob[jobId].unshift(action.payload);
         }
+        
+        // Increment job candidate count (will be handled by JobsPage via incrementJobCandidateCount action)
       })
       .addCase(addCandidate.rejected, (state, action) => {
         state.loading = false;

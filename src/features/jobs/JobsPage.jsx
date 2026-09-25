@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchJobs } from "./jobsSlice";
+import { fetchJobs, clearJobsCache } from "./jobsSlice";
 import JobList from "./JobList";
 import CreateJob from "./CreateJob";
 
@@ -14,6 +14,8 @@ const JobsPage = () => {
   const [viewMode, setViewMode] = useState("grid"); // grid or list
 
   useEffect(() => {
+    // Clear cache and force refresh jobs data to get updated candidate counts
+    dispatch(clearJobsCache());
     dispatch(fetchJobs());
   }, [dispatch]);
 
