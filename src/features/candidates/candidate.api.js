@@ -23,6 +23,12 @@ export const getAllCandidatesApi = async (filters = {}) => {
   if (filters.jobId) params.append("jobId", filters.jobId);
   
   const response = await axiosInstance.get(`/candidates?${params.toString()}`);
+  
+  // Backend returns { candidates: [], counts: {} } but we need just the candidates array
+  if (response.data.data && response.data.data.candidates) {
+    return response.data.data.candidates;
+  }
+  
   return response.data.data;
 };
 
