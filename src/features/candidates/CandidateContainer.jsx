@@ -60,9 +60,11 @@ const CandidateContainer = () => {
     setSelectedCandidate(candidate);
   };
 
-  const filteredCandidates = candidates.filter(candidate => {
-    const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredCandidates = (candidates || []).filter(candidate => {
+    if (!candidate) return false;
+    
+    const matchesSearch = (candidate.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (candidate.email || "").toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStage = !filters.stage || candidate.currentStage === filters.stage;
     const matchesJob = !filters.jobId || candidate.jobId === filters.jobId;
@@ -71,8 +73,9 @@ const CandidateContainer = () => {
   });
 
   const getStageCount = (stage) => {
+    if (!candidates || !Array.isArray(candidates)) return 0;
     if (!stage) return candidates.length;
-    return candidates.filter(c => c.currentStage === stage).length;
+    return candidates.filter(c => c && c.currentStage === stage).length;
   };
 
   const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
@@ -109,7 +112,7 @@ const CandidateContainer = () => {
           
           <div className="flex items-center gap-2 md:gap-3">
             <div className="text-xs md:text-sm bg-blue-50 text-blue-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-semibold border border-blue-200">
-              {filteredCandidates.length} Total
+              {filteredCandidates?.length || 0} Total
             </div>
           </div>
         </div>
@@ -269,7 +272,7 @@ const CandidateContainer = () => {
           </div>
         )}
 
-        {filteredCandidates.length === 0 ? (
+        {(filteredCandidates?.length || 0) === 0 ? (
           <div className="text-center py-12 md:py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
             <svg className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-3 md:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -288,7 +291,7 @@ const CandidateContainer = () => {
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
               : "space-y-2 md:space-y-3"
           }>
-            {filteredCandidates.map((candidate) => (
+            {(filteredCandidates || []).map((candidate) => (
               <CandidateCard
                 key={candidate.id}
                 candidate={candidate}
