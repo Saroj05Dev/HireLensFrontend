@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCandidates, candidateStageUpdatedRealtime } from "./candidateSlice";
 import { fetchJobs } from "../jobs/jobsSlice";
@@ -19,7 +19,7 @@ const STAGE_FILTERS = [
 
 const CandidateContainer = () => {
   const dispatch = useDispatch();
-  const { list: candidates, loading, error } = useSelector((state) => state.candidates);
+  const { list: candidates = [], loading, error } = useSelector((state) => state.candidates || {});
   const { list: jobs } = useSelector((state) => state.jobs);
   const { user } = useSelector((state) => state.auth);
   
@@ -60,17 +60,21 @@ const CandidateContainer = () => {
     setSelectedCandidate(candidate);
   };
 
-  const filteredCandidates = (candidates || []).filter(candidate => {
-    if (!candidate) return false;
+  const filteredCandidates = useMemo(() => {
+    if (!candidates || !Array.isArray(candidates)) return [];
     
-    const matchesSearch = (candidate.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (candidate.email || "").toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStage = !filters.stage || candidate.currentStage === filters.stage;
-    const matchesJob = !filters.jobId || candidate.jobId === filters.jobId;
-    
-    return matchesSearch && matchesStage && matchesJob;
-  });
+    return candidates.filter(candidate => {
+      if (!candidate) return false;
+      
+      const matchesSearch = (candidate.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (candidate.email || "").toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStage = !filters.stage || candidate.currentStage === filters.stage;
+      const matchesJob = !filters.jobId || candidate.jobId === filters.jobId;
+      
+      return matchesSearch && matchesStage && matchesJob;
+    });
+  }, [candidates, searchQuery, filters.stage, filters.jobId]);
 
   const getStageCount = (stage) => {
     if (!candidates || !Array.isArray(candidates)) return 0;
