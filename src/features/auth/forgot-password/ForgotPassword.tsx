@@ -1,18 +1,23 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import { forgotPasswordApi, verifyResetOTPApi, resetPasswordApi } from "../auth.api";
 
-const ForgotPassword = () => {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [resendTimer, setResendTimer] = useState(0);
-  const [showPassword, setShowPassword] = useState(false);
+interface ApiErrorResponse {
+  message?: string;
+}
 
-  const startResendTimer = () => {
+const ForgotPassword: React.FC = () => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [email, setEmail] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [resendTimer, setResendTimer] = useState<number>(0);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  const startResendTimer = (): void => {
     setResendTimer(60);
     const interval = setInterval(() => {
       setResendTimer((prev) => {
@@ -25,15 +30,19 @@ const ForgotPassword = () => {
     }, 1000);
   };
 
-  const handleSendOTP = async (e) => {
+  const handleSendOTP = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    const emailInput = e.target.email.value;
+    const target = e.currentTarget;
+    const emailInput = (target.elements.namedItem("email") as HTMLInputElement)?.value;
+
     if (!emailInput) {
       setError("Email is required");
       return;
     }
+
     setLoading(true);
     setError(null);
+
     try {
       await forgotPasswordApi({ email: emailInput });
       setEmail(emailInput);
@@ -41,37 +50,44 @@ const ForgotPassword = () => {
       startResendTimer();
       setSuccess("Reset code sent to your email");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to send reset code");
+      const error = err as AxiosError<ApiErrorResponse>;
+      setError(error.response?.data?.message || "Failed to send reset code");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOTP = async (e) => {
+  const handleVerifyOTP = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    const otpInput = e.target.otp.value;
+    const target = e.currentTarget;
+    const otpInput = (target.elements.namedItem("otp") as HTMLInputElement)?.value;
+
     if (!otpInput || otpInput.length !== 6) {
       setError("Please enter a valid 6-digit code");
       return;
     }
+
     setLoading(true);
     setError(null);
+
     try {
       await verifyResetOTPApi({ email, otp: otpInput });
       setStep(3);
       setSuccess("Code verified! Set your new password");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid code");
+      const error = err as AxiosError<ApiErrorResponse>;
+      setError(error.response?.data?.message || "Invalid code");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResetPassword = async (e) => {
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    const newPassword = e.target.newPassword.value;
-    const confirmPassword = e.target.confirmPassword.value;
-    
+    const target = e.currentTarget;
+    const newPassword = (target.elements.namedItem("newPassword") as HTMLInputElement)?.value;
+    const confirmPassword = (target.elements.namedItem("confirmPassword") as HTMLInputElement)?.value;
+
     if (!newPassword || newPassword.length < 6) {
       setError("Password must be at least 6 characters");
       return;
@@ -80,20 +96,23 @@ const ForgotPassword = () => {
       setError("Passwords do not match");
       return;
     }
+
     setLoading(true);
     setError(null);
+
     try {
       await resetPasswordApi({ email, newPassword });
       setSuccess("Password reset successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to reset password");
+      const error = err as AxiosError<ApiErrorResponse>;
+      setError(error.response?.data?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendOTP = async () => {
+  const handleResendOTP = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -101,7 +120,8 @@ const ForgotPassword = () => {
       startResendTimer();
       setSuccess("New code sent to your email");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to resend code");
+      const error = err as AxiosError<ApiErrorResponse>;
+      setError(error.response?.data?.message || "Failed to resend code");
     } finally {
       setLoading(false);
     }
@@ -156,9 +176,20 @@ const ForgotPassword = () => {
             <form onSubmit={handleSendOTP} className="space-y-5">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
-                <input id="email" name="email" type="email" required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="your@email.com" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="your@email.com"
+                />
               </div>
-              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:from-red-700 hover:to-pink-700 disabled:opacity-50 shadow-lg">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:from-red-700 hover:to-pink-700 disabled:opacity-50 shadow-lg cursor-pointer disabled:cursor-not-allowed"
+              >
                 {loading ? "Sending..." : "Send reset code"}
               </button>
             </form>
@@ -171,19 +202,35 @@ const ForgotPassword = () => {
               </div>
               <div>
                 <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">Reset code</label>
-                <input id="otp" name="otp" type="text" maxLength="6" required className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="000000" />
+                <input
+                  id="otp"
+                  name="otp"
+                  type="text"
+                  maxLength={6}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="000000"
+                />
               </div>
-              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 shadow-lg">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 shadow-lg cursor-pointer disabled:cursor-not-allowed"
+              >
                 {loading ? "Verifying..." : "Verify code"}
               </button>
               <div className="text-center">
                 {resendTimer > 0 ? (
                   <p className="text-sm text-gray-500">Resend in {resendTimer}s</p>
                 ) : (
-                  <button type="button" onClick={handleResendOTP} className="text-sm text-red-600 font-medium">Resend code</button>
+                  <button type="button" onClick={handleResendOTP} className="text-sm text-red-600 font-medium cursor-pointer">
+                    Resend code
+                  </button>
                 )}
               </div>
-              <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-gray-600">← Change email</button>
+              <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-gray-600 cursor-pointer">
+                ← Change email
+              </button>
             </form>
           )}
 
@@ -192,17 +239,39 @@ const ForgotPassword = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">New password</label>
                 <div className="relative">
-                  <input type={showPassword ? "text" : "password"} name="newPassword" required minLength="6" className="w-full px-4 py-3 border rounded-lg pr-12 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter new password" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="newPassword"
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 border rounded-lg pr-12 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="Enter new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 cursor-pointer"
+                  >
                     {showPassword ? "Hide" : "Show"}
                   </button>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Confirm password</label>
-                <input type={showPassword ? "text" : "password"} name="confirmPassword" required minLength="6" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Confirm new password" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Confirm new password"
+                />
               </div>
-              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 shadow-lg">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 shadow-lg cursor-pointer disabled:cursor-not-allowed"
+              >
                 {loading ? "Resetting..." : "Reset password"}
               </button>
             </form>
@@ -210,7 +279,10 @@ const ForgotPassword = () => {
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-8">
-          Remember your password? <Link to="/login" className="font-medium text-blue-600">Sign in</Link>
+          Remember your password?{" "}
+          <Link to="/login" className="font-medium text-blue-600">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>
