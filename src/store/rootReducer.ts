@@ -7,13 +7,14 @@ import teamReducer from "../features/team/teamSlice";
 import notificationReducer from "../features/notifications/notificationSlice";
 import profileReducer from "../features/profile/profileSlice";
 
-
-export default combineReducers({
-    auth: authReducer,
-    jobs: jobReducer,
-    candidates: candidateReducer,
-    interviews: interviewReducer,
-    team: teamReducer,
-    notifications: notificationReducer,
-    profile: profileReducer
+const rootReducer = combineReducers({
+  auth: authReducer,
+  jobs: jobReducer,
+  candidates: candidateReducer,
+  interviews: interviewReducer,
+  team: teamReducer,
+  notifications: notificationReducer,
+  profile: profileReducer,
 });
+
+export default rootReducer;

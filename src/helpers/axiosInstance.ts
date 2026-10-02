@@ -1,4 +1,13 @@
-import axios from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+};
+
+interface FailedRequestPromise {
+  resolve: () => void;
+  reject: (error: unknown) => void;
+}
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -6,46 +15,53 @@ const axiosInstance = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue = [];
-let onLogout = null;
+let failedQueue: FailedRequestPromise[] = [];
+let onLogout: (() => void) | null = null;
 
-export const setLogoutHandler = (handler) => {
+export const setLogoutHandler = (handler: () => void): void => {
   onLogout = handler;
 };
 
-const processQueue = (error) => {
-  failedQueue.forEach((p) =>
-    error ? p.reject(error) : p.resolve()
-  );
+const processQueue = (error: unknown = null): void => {
+  failedQueue.forEach((p) => {
+    if (error) {
+      p.reject(error);
+    } else {
+      p.resolve();
+    }
+  });
   failedQueue = [];
 };
-
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as CustomAxiosRequestConfig | undefined;
 
-    // Don't retry if it's the initial auth check (/auth/me), login, register, accept-invite or refresh endpoint
-    const isAuthCheck = originalRequest.url?.includes('/auth/me');
-    const isLoginEndpoint = originalRequest.url?.includes('/auth/register') || originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/accept-invite');
-    const isRefreshEndpoint = originalRequest.url?.includes('/auth/refresh');
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    const isAuthCheck = originalRequest.url?.includes("/auth/me");
+    const isLoginEndpoint =
+      originalRequest.url?.includes("/auth/register") ||
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/accept-invite");
+    const isRefreshEndpoint = originalRequest.url?.includes("/auth/refresh");
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // If it's the initial auth check or login, just reject (user not logged in or invalid credentials)
       if ((isAuthCheck || isLoginEndpoint) && !isRefreshing) {
         return Promise.reject(error);
       }
 
-      // If refresh endpoint fails, user needs to login again
       if (isRefreshEndpoint) {
         if (onLogout) onLogout();
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(() => axiosInstance(originalRequest));
       }
