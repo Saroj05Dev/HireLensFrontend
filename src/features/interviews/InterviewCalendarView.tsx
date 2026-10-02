@@ -1,12 +1,31 @@
-import { useState, useMemo } from 'react';
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import enUS from 'date-fns/locale/en-US';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './calendar-custom.css';
+import React, { useState, useMemo } from "react";
+import {
+  Calendar,
+  dateFnsLocalizer,
+  EventPropGetter,
+  stringOrDate,
+} from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { enUS } from "date-fns/locale/en-US";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./calendar-custom.css";
+import type { Interview } from "../../types/interview.types";
+
+interface InterviewCalendarViewProps {
+  interviews: Interview[];
+  onSelectInterview: (interview: Interview) => void;
+}
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  resource: Interview;
+}
 
 const locales = {
-  'en-US': enUS
+  "en-US": enUS,
 };
 
 const localizer = dateFnsLocalizer({
@@ -17,17 +36,20 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [showDayModal, setShowDayModal] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState('month');
+const InterviewCalendarView: React.FC<InterviewCalendarViewProps> = ({
+  interviews,
+  onSelectInterview,
+}) => {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showDayModal, setShowDayModal] = useState<boolean>(false);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentView, setCurrentView] = useState<any>("month");
 
   // Transform interviews into calendar events
-  const events = useMemo(() => {
-    return interviews.map(interview => ({
+  const events = useMemo<CalendarEvent[]>(() => {
+    return interviews.map((interview) => ({
       id: interview.id,
-      title: `${interview.candidate?.name || 'Unknown'} - ${interview.job?.title || 'Unknown Job'}`,
+      title: `${interview.candidate?.name || "Unknown"} - ${interview.job?.title || "Unknown Job"}`,
       start: new Date(interview.scheduledAt),
       end: new Date(new Date(interview.scheduledAt).getTime() + 60 * 60 * 1000), // 1 hour duration
       resource: interview,
@@ -35,53 +57,53 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
   }, [interviews]);
 
   // Get interviews for a specific date
-  const getInterviewsForDate = (date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return interviews.filter(interview => {
-      const interviewDate = format(new Date(interview.scheduledAt), 'yyyy-MM-dd');
+  const getInterviewsForDate = (date: Date): Interview[] => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return interviews.filter((interview) => {
+      const interviewDate = format(new Date(interview.scheduledAt), "yyyy-MM-dd");
       return interviewDate === dateStr;
     });
   };
 
-  const handleSelectSlot = ({ start }) => {
-    const dayInterviews = getInterviewsForDate(start);
+  const handleSelectSlot = ({ start }: { start: stringOrDate; end: stringOrDate }) => {
+    const startDate = new Date(start);
+    const dayInterviews = getInterviewsForDate(startDate);
     if (dayInterviews.length > 0) {
-      setSelectedDate(start);
+      setSelectedDate(startDate);
       setShowDayModal(true);
     }
   };
 
-  const handleSelectEvent = (event) => {
+  const handleSelectEvent = (event: CalendarEvent) => {
     const interview = event.resource;
-    // Only show feedback viewer for completed interviews
-    if (interview.status === 'COMPLETED') {
+    if (interview.status === "COMPLETED") {
       onSelectInterview(interview);
     }
   };
 
-  const eventStyleGetter = (event) => {
+  const eventStyleGetter: EventPropGetter<CalendarEvent> = (event) => {
     const interview = event.resource;
-    const isCompleted = interview.status === 'COMPLETED';
-    
+    const isCompleted = interview.status === "COMPLETED";
+
     return {
       style: {
-        backgroundColor: isCompleted ? '#10b981' : '#3b82f6',
-        borderRadius: '6px',
+        backgroundColor: isCompleted ? "#10b981" : "#3b82f6",
+        borderRadius: "6px",
         opacity: 0.9,
-        color: 'white',
-        border: 'none',
-        display: 'block',
-        fontSize: '13px',
-        padding: '4px 8px',
-      }
+        color: "white",
+        border: "none",
+        display: "block",
+        fontSize: "13px",
+        padding: "4px 8px",
+      },
     };
   };
 
-  const formatTime = (dateString) => {
-    return format(new Date(dateString), 'h:mm a');
+  const formatTime = (date: Date | string): string => {
+    return format(new Date(date), "h:mm a");
   };
 
-  const getInitials = (name) => {
+  const getInitials = (name?: string): string => {
     if (!name) return "?";
     return name
       .split(" ")
@@ -110,8 +132,11 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
       </div>
 
       {/* Calendar */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6" style={{ height: '700px', position: 'relative', zIndex: 1 }}>
-        <Calendar
+      <div
+        className="bg-white rounded-lg border border-gray-200 p-4 md:p-6"
+        style={{ height: "700px", position: "relative", zIndex: 1 }}
+      >
+        <Calendar<CalendarEvent>
           localizer={localizer}
           events={events}
           startAccessor="start"
@@ -124,17 +149,17 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
           onSelectSlot={handleSelectSlot}
           selectable
           eventPropGetter={eventStyleGetter}
-          views={['month', 'week', 'day']}
+          views={["month", "week", "day"]}
           popup
           tooltipAccessor={(event) => `${event.title} at ${formatTime(event.start)}`}
-          style={{ height: '100%' }}
+          style={{ height: "100%" }}
         />
       </div>
 
       {/* Day Modal */}
       {showDayModal && selectedDate && (
         <>
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40"
             onClick={() => setShowDayModal(false)}
           />
@@ -144,7 +169,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                    {format(selectedDate, "EEEE, MMMM d, yyyy")}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
                     {getInterviewsForDate(selectedDate).length} interview(s) scheduled
@@ -152,7 +177,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                 </div>
                 <button
                   onClick={() => setShowDayModal(false)}
-                  className="text-gray-400 hover:text-gray-600 p-2"
+                  className="text-gray-400 hover:text-gray-600 p-2 cursor-pointer"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -168,33 +193,34 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                   <div
                     key={interview.id}
                     onClick={() => {
-                      // Only allow viewing feedback for completed interviews
-                      if (interview.status === 'COMPLETED') {
+                      if (interview.status === "COMPLETED") {
                         onSelectInterview(interview);
                         setShowDayModal(false);
                       }
                     }}
                     className={`bg-gray-50 border border-gray-200 rounded-lg p-4 transition-shadow ${
-                      interview.status === 'COMPLETED' 
-                        ? 'hover:shadow-md cursor-pointer' 
-                        : 'cursor-default opacity-75'
+                      interview.status === "COMPLETED"
+                        ? "hover:shadow-md cursor-pointer"
+                        : "cursor-default opacity-75"
                     }`}
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0">
                         {getInitials(interview.candidate?.name)}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <h4 className="text-base font-semibold text-gray-900 truncate">
                             {interview.candidate?.name || "Unknown Candidate"}
                           </h4>
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full shrink-0 ${
-                            interview.status === "COMPLETED"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full shrink-0 ${
+                              interview.status === "COMPLETED"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
                             {interview.status}
                           </span>
                         </div>
@@ -224,8 +250,7 @@ const InterviewCalendarView = ({ interviews, onSelectInterview }) => {
                       </div>
                     </div>
 
-                    {/* Show message for pending interviews */}
-                    {interview.status === 'ASSIGNED' && (
+                    {interview.status === "ASSIGNED" && (
                       <div className="mt-3 pt-3 border-t border-gray-200">
                         <p className="text-xs text-gray-500 flex items-center gap-1.5">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

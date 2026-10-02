@@ -1,28 +1,29 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useAppSelector } from "../../store/hooks";
 import { getAllInterviewsApi } from "./interview.api";
 import { onInterviewAssigned, onFeedbackSubmitted, offSocketEvent } from "../../helpers/socket";
 import FeedbackViewer from "./FeedbackViewer";
 import InterviewCalendarView from "./InterviewCalendarView";
 import Loader from "../../components/ui/Loader";
+import type { Interview, InterviewFilters } from "../../types/interview.types";
 
 const STATUS_FILTERS = [
-  { key: "", label: "All Interviews", color: "blue" },
-  { key: "ASSIGNED", label: "Pending", color: "yellow" },
-  { key: "COMPLETED", label: "Completed", color: "green" },
+  { key: "", label: "All Interviews" },
+  { key: "ASSIGNED", label: "Pending" },
+  { key: "COMPLETED", label: "Completed" },
 ];
 
-const InterviewsContainer = () => {
-  const { list: jobs } = useSelector((state) => state.jobs);
-  
-  const [interviews, setInterviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedInterview, setSelectedInterview] = useState(null);
-  const [showFeedbackViewer, setShowFeedbackViewer] = useState(false);
-  const [viewMode, setViewMode] = useState("list"); // "list" or "calendar"
-  
-  const [filters, setFilters] = useState({
+const InterviewsContainer: React.FC = () => {
+  const { list: jobs } = useAppSelector((state) => state.jobs);
+
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
+  const [showFeedbackViewer, setShowFeedbackViewer] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+
+  const [filters, setFilters] = useState<InterviewFilters>({
     status: "",
     jobId: "",
   });
@@ -34,7 +35,7 @@ const InterviewsContainer = () => {
         const data = await getAllInterviewsApi(filters);
         setInterviews(data);
         setError(null);
-      } catch (err) {
+      } catch (err: any) {
         setError(err.response?.data?.message || "Failed to fetch interviews");
       } finally {
         setLoading(false);
@@ -44,24 +45,25 @@ const InterviewsContainer = () => {
     fetchInterviews();
   }, [filters]);
 
-  // Set up real-time listeners for interview updates
   useEffect(() => {
-    const handleInterviewAssigned = (data) => {
-      // Refetch interviews when a new one is assigned
-      getAllInterviewsApi(filters).then(data => {
-        setInterviews(data);
-      }).catch(err => {
-        console.error("Failed to refresh interviews:", err);
-      });
+    const handleInterviewAssigned = () => {
+      getAllInterviewsApi(filters)
+        .then((data) => {
+          setInterviews(data);
+        })
+        .catch((err) => {
+          console.error("Failed to refresh interviews:", err);
+        });
     };
 
-    const handleFeedbackSubmitted = (data) => {
-      // Update the specific interview status
-      setInterviews(prev => prev.map(interview => 
-        interview.id === data.interviewId 
-          ? { ...interview, status: "COMPLETED" }
-          : interview
-      ));
+    const handleFeedbackSubmitted = (data: { interviewId: string }) => {
+      setInterviews((prev) =>
+        prev.map((interview) =>
+          interview.id === data.interviewId
+            ? { ...interview, status: "COMPLETED" }
+            : interview
+        )
+      );
     };
 
     onInterviewAssigned(handleInterviewAssigned);
@@ -73,35 +75,35 @@ const InterviewsContainer = () => {
     };
   }, [filters]);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+  const handleFilterChange = (key: keyof InterviewFilters, value: string): void => {
+    setFilters((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
-  const handleViewFeedback = (interview) => {
+  const handleViewFeedback = (interview: Interview): void => {
     setSelectedInterview(interview);
     setShowFeedbackViewer(true);
   };
 
-  const closeFeedbackViewer = () => {
+  const closeFeedbackViewer = (): void => {
     setShowFeedbackViewer(false);
     setSelectedInterview(null);
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string): string => {
     if (!dateString) return "Not scheduled";
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const getInitials = (name) => {
+  const getInitials = (name?: string): string => {
     if (!name) return "?";
     return name
       .split(" ")
@@ -111,8 +113,8 @@ const InterviewsContainer = () => {
       .slice(0, 2);
   };
 
-  const pendingCount = interviews.filter(i => i.status === "ASSIGNED").length;
-  const completedCount = interviews.filter(i => i.status === "COMPLETED").length;
+  const pendingCount = interviews.filter((i) => i.status === "ASSIGNED").length;
+  const completedCount = interviews.filter((i) => i.status === "COMPLETED").length;
 
   if (loading) {
     return (
@@ -138,7 +140,7 @@ const InterviewsContainer = () => {
               Monitor and review all interviews across your organization
             </p>
           </div>
-          
+
           <div className="text-left md:text-right">
             <p className="text-xs md:text-sm text-gray-500">Total Interviews</p>
             <p className="text-2xl md:text-3xl font-bold text-gray-900">{interviews.length}</p>
@@ -195,7 +197,6 @@ const InterviewsContainer = () => {
 
       {/* Filters Section */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-        {/* View Toggle */}
         <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,11 +205,11 @@ const InterviewsContainer = () => {
             </svg>
             <span className="text-sm font-semibold text-gray-700">View:</span>
           </div>
-          
+
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode("list")}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
                 viewMode === "list"
                   ? "bg-blue-600 text-white shadow-md"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -221,7 +222,7 @@ const InterviewsContainer = () => {
             </button>
             <button
               onClick={() => setViewMode("calendar")}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
                 viewMode === "calendar"
                   ? "bg-blue-600 text-white shadow-md"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -249,7 +250,7 @@ const InterviewsContainer = () => {
               <button
                 key={filter.key}
                 onClick={() => handleFilterChange("status", filter.key)}
-                className={`px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium rounded-lg transition-all ${
+                className={`px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium rounded-lg transition-all cursor-pointer ${
                   filters.status === filter.key
                     ? "bg-blue-600 text-white shadow-md"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -266,7 +267,7 @@ const InterviewsContainer = () => {
               <select
                 value={filters.jobId}
                 onChange={(e) => handleFilterChange("jobId", e.target.value)}
-                className="w-full px-3 md:px-4 py-2 pr-10 border-2 border-gray-300 rounded-lg text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white truncate"
+                className="w-full px-3 md:px-4 py-2 pr-10 border-2 border-gray-300 rounded-lg text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white truncate cursor-pointer"
               >
                 <option value="">All Jobs</option>
                 {jobs.map((job) => (
@@ -285,7 +286,7 @@ const InterviewsContainer = () => {
             {(filters.status || filters.jobId) && (
               <button
                 onClick={() => setFilters({ status: "", jobId: "" })}
-                className="px-3 md:px-4 py-2 text-xs md:text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium flex items-center justify-center gap-2 whitespace-nowrap"
+                className="px-3 md:px-4 py-2 text-xs md:text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
               >
                 <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -312,7 +313,7 @@ const InterviewsContainer = () => {
 
       {/* Interviews List or Calendar */}
       {viewMode === "calendar" ? (
-        <InterviewCalendarView 
+        <InterviewCalendarView
           interviews={interviews}
           onSelectInterview={handleViewFeedback}
         />
@@ -324,15 +325,14 @@ const InterviewsContainer = () => {
             </svg>
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">No interviews found</h3>
             <p className="text-sm md:text-base text-gray-500 mb-4 px-4">
-              {filters.status || filters.jobId 
-                ? "Try adjusting your filters to see more results" 
-                : "Interviews will appear here once they're assigned to interviewers"
-              }
+              {filters.status || filters.jobId
+                ? "Try adjusting your filters to see more results"
+                : "Interviews will appear here once they're assigned to interviewers"}
             </p>
             {(filters.status || filters.jobId) && (
               <button
                 onClick={() => setFilters({ status: "", jobId: "" })}
-                className="px-4 py-2 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="px-4 py-2 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer"
               >
                 Clear Filters
               </button>
@@ -352,7 +352,7 @@ const InterviewsContainer = () => {
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md shrink-0">
                     {getInitials(interview.candidate?.name)}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1 truncate">
                       {interview.candidate?.name || "Unknown Candidate"}
@@ -363,11 +363,13 @@ const InterviewsContainer = () => {
                   </div>
                 </div>
 
-                <span className={`px-2 md:px-3 py-1 text-xs font-semibold rounded-full shrink-0 ${
-                  interview.status === "COMPLETED"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}>
+                <span
+                  className={`px-2 md:px-3 py-1 text-xs font-semibold rounded-full shrink-0 ${
+                    interview.status === "COMPLETED"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
                   {interview.status}
                 </span>
               </div>
@@ -405,7 +407,7 @@ const InterviewsContainer = () => {
                 {interview.status === "COMPLETED" ? (
                   <button
                     onClick={() => handleViewFeedback(interview)}
-                    className="w-full px-4 py-2 md:py-2.5 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 md:py-2.5 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

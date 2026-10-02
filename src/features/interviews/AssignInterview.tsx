@@ -1,19 +1,37 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { assignInterview } from "./interviewSlice";
 import { getInterviewersApi } from "./interview.api";
+import type { Candidate } from "../../types/candidate.types";
+import type { InterviewerUser } from "../../types/interview.types";
 
-const AssignInterview = ({ candidate, onClose }) => {
-  const dispatch = useDispatch();
-  const { assignLoading, error: assignError } = useSelector((state) => state.interviews);
-  
-  const [interviewers, setInterviewers] = useState([]);
-  const [loadingInterviewers, setLoadingInterviewers] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedInterviewer, setSelectedInterviewer] = useState(null);
-  
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+interface AssignInterviewProps {
+  candidate: Candidate;
+  onClose: () => void;
+}
+
+interface AssignInterviewFormInputs {
+  interviewerId: string;
+  scheduledAt?: string;
+  notes?: string;
+}
+
+const AssignInterview: React.FC<AssignInterviewProps> = ({ candidate, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { assignLoading, error: assignError } = useAppSelector((state) => state.interviews);
+
+  const [interviewers, setInterviewers] = useState<InterviewerUser[]>([]);
+  const [loadingInterviewers, setLoadingInterviewers] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedInterviewer, setSelectedInterviewer] = useState<InterviewerUser | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<AssignInterviewFormInputs>();
 
   const watchInterviewerId = watch("interviewerId");
 
@@ -37,32 +55,34 @@ const AssignInterview = ({ candidate, onClose }) => {
 
   useEffect(() => {
     if (watchInterviewerId) {
-      const interviewer = interviewers.find(i => i.id === watchInterviewerId);
+      const interviewer = interviewers.find((i) => i.id === watchInterviewerId) || null;
       setSelectedInterviewer(interviewer);
     } else {
       setSelectedInterviewer(null);
     }
   }, [watchInterviewerId, interviewers]);
 
-  const onSubmit = async (data) => {
+  const onSubmit: SubmitHandler<AssignInterviewFormInputs> = async (data) => {
     setError(null);
-    
+
     const interviewData = {
       candidateId: candidate.id,
+      jobId: candidate.jobId,
       interviewerId: data.interviewerId,
-      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
+      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : (null as any),
+      notes: data.notes?.trim() || undefined,
     };
 
     const result = await dispatch(assignInterview(interviewData));
-    
+
     if (assignInterview.fulfilled.match(result)) {
       onClose();
     } else if (assignInterview.rejected.match(result)) {
-      setError(result.payload || "Failed to assign interview");
+      setError((result.payload as string) || "Failed to assign interview");
     }
   };
 
-  const getInitials = (name) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
       .map((n) => n[0])
@@ -71,7 +91,7 @@ const AssignInterview = ({ candidate, onClose }) => {
       .slice(0, 2);
   };
 
-  const getMinDateTime = () => {
+  const getMinDateTime = (): string => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     return now.toISOString().slice(0, 16);
@@ -99,7 +119,7 @@ const AssignInterview = ({ candidate, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 transition-colors"
+              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 transition-colors cursor-pointer"
               disabled={assignLoading}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +184,7 @@ const AssignInterview = ({ candidate, onClose }) => {
                 <div className="relative">
                   <select
                     {...register("interviewerId", { required: "Please select an interviewer" })}
-                    className="w-full border-2 border-gray-300 px-3 py-2 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white"
+                    className="w-full border-2 border-gray-300 px-3 py-2 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white cursor-pointer"
                   >
                     <option value="">Choose an interviewer...</option>
                     {interviewers.map((interviewer) => (
@@ -251,7 +271,7 @@ const AssignInterview = ({ candidate, onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 md:px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm disabled:opacity-50"
+            className="px-4 md:px-5 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm disabled:opacity-50 cursor-pointer"
             disabled={assignLoading}
           >
             Cancel
@@ -260,7 +280,7 @@ const AssignInterview = ({ candidate, onClose }) => {
           <button
             type="submit"
             disabled={assignLoading || loadingInterviewers || interviewers.length === 0}
-            className="px-4 md:px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm"
+            className="px-4 md:px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm cursor-pointer"
           >
             {assignLoading ? (
               <>

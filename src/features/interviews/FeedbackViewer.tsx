@@ -1,47 +1,60 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { getInterviewFeedback } from "./interviewSlice";
 import Loader from "../../components/ui/Loader";
+import type { Interview } from "../../types/interview.types";
 
-const RECOMMENDATION_CONFIG = {
-  PROCEED: { 
-    label: "Proceed to next round", 
+interface FeedbackViewerProps {
+  interview: Interview;
+  onClose: () => void;
+}
+
+interface RecommendationConfigItem {
+  label: string;
+  color: string;
+  icon: React.ReactNode;
+  bgColor: string;
+}
+
+const RECOMMENDATION_CONFIG: Record<string, RecommendationConfigItem> = {
+  PROCEED: {
+    label: "Proceed to next round",
     color: "bg-green-50 border-green-200 text-green-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
       </svg>
     ),
-    bgColor: "bg-green-100"
+    bgColor: "bg-green-100",
   },
-  HOLD: { 
-    label: "Maybe - needs discussion", 
+  HOLD: {
+    label: "Maybe - needs discussion",
     color: "bg-yellow-50 border-yellow-200 text-yellow-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
     ),
-    bgColor: "bg-yellow-100"
+    bgColor: "bg-yellow-100",
   },
-  REJECT: { 
-    label: "Do not proceed", 
+  REJECT: {
+    label: "Do not proceed",
     color: "bg-red-50 border-red-200 text-red-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
     ),
-    bgColor: "bg-red-100"
+    bgColor: "bg-red-100",
   },
 };
 
-const FeedbackViewer = ({ interview, onClose }) => {
-  const dispatch = useDispatch();
-  const { feedbackByInterview, feedbackLoading } = useSelector((state) => state.interviews);
-  
+const FeedbackViewer: React.FC<FeedbackViewerProps> = ({ interview, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { feedbackByInterview, feedbackLoading } = useAppSelector((state) => state.interviews);
+
   const feedback = feedbackByInterview[interview.id];
-  const loading = feedbackLoading[interview.id];
+  const loading = !!feedbackLoading[interview.id];
 
   useEffect(() => {
     if (!feedback && !loading) {
@@ -49,7 +62,7 @@ const FeedbackViewer = ({ interview, onClose }) => {
     }
   }, [dispatch, interview.id, feedback, loading]);
 
-  const renderStars = (rating) => {
+  const renderStars = (rating: number): React.ReactNode => {
     return (
       <div className="flex gap-0.5 md:gap-1">
         {Array.from({ length: 5 }, (_, i) => (
@@ -66,7 +79,9 @@ const FeedbackViewer = ({ interview, onClose }) => {
     );
   };
 
-  const recommendationConfig = feedback ? RECOMMENDATION_CONFIG[feedback.recommendation] : null;
+  const recommendationConfig = feedback?.recommendation
+    ? RECOMMENDATION_CONFIG[feedback.recommendation]
+    : null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
@@ -90,7 +105,7 @@ const FeedbackViewer = ({ interview, onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0"
+              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0 cursor-pointer"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -149,47 +164,53 @@ const FeedbackViewer = ({ interview, onClose }) => {
                 </div>
 
                 {/* Recommendation */}
-                <div className={`rounded-lg p-4 md:p-5 border-2 ${recommendationConfig.color}`}>
-                  <h3 className="text-xs md:text-sm font-semibold mb-2 md:mb-3 flex items-center gap-2">
-                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Recommendation
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <div className="text-current shrink-0">{recommendationConfig.icon}</div>
-                    <span className="text-xs md:text-sm font-semibold">
-                      {recommendationConfig.label}
-                    </span>
+                {recommendationConfig && (
+                  <div className={`rounded-lg p-4 md:p-5 border-2 ${recommendationConfig.color}`}>
+                    <h3 className="text-xs md:text-sm font-semibold mb-2 md:mb-3 flex items-center gap-2">
+                      <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Recommendation
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <div className="text-current shrink-0">{recommendationConfig.icon}</div>
+                      <span className="text-xs md:text-sm font-semibold">
+                        {recommendationConfig.label}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Strengths */}
-              <div>
-                <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Strengths
-                </h3>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4">
-                  <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{feedback.strengths}</p>
+              {feedback.strengths && (
+                <div>
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Strengths
+                  </h3>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4">
+                    <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{feedback.strengths}</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Areas for Improvement */}
-              <div>
-                <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  Areas for Improvement
-                </h3>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
-                  <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{feedback.weaknesses}</p>
+              {feedback.weaknesses && (
+                <div>
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Areas for Improvement
+                  </h3>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
+                    <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{feedback.weaknesses}</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Additional Notes */}
               {feedback.notes && (
@@ -207,22 +228,25 @@ const FeedbackViewer = ({ interview, onClose }) => {
               )}
 
               {/* Metadata */}
-              <div className="pt-3 md:pt-4 border-t border-gray-200">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="break-words">
-                    Submitted on {new Date(feedback.createdAt).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
+              {feedback.createdAt && (
+                <div className="pt-3 md:pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="break-words">
+                      Submitted on{" "}
+                      {new Date(feedback.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -231,7 +255,7 @@ const FeedbackViewer = ({ interview, onClose }) => {
         <div className="bg-gray-50 border-t border-gray-200 px-4 md:px-6 py-3 md:py-4 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 md:px-5 py-2 md:py-2.5 text-sm md:text-base bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center gap-2 shadow-sm"
+            className="px-4 md:px-5 py-2 md:py-2.5 text-sm md:text-base bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -1,64 +1,94 @@
-import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import React from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { submitFeedback } from "./interviewSlice";
+import type { Interview } from "../../types/interview.types";
 
-const RECOMMENDATION_OPTIONS = [
-  { 
-    value: "PROCEED", 
-    label: "Proceed to next round", 
-    color: "bg-green-50 border-green-200 text-green-700", 
+interface FeedbackFormProps {
+  interview: Interview;
+  onClose: () => void;
+}
+
+interface FeedbackFormInputs {
+  rating: string;
+  strengths: string;
+  weaknesses: string;
+  recommendation: "PROCEED" | "HOLD" | "REJECT" | string;
+  notes?: string;
+}
+
+interface RecommendationOption {
+  value: string;
+  label: string;
+  color: string;
+  icon: React.ReactNode;
+}
+
+const RECOMMENDATION_OPTIONS: RecommendationOption[] = [
+  {
+    value: "PROCEED",
+    label: "Proceed to next round",
+    color: "bg-green-50 border-green-200 text-green-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
       </svg>
-    )
+    ),
   },
-  { 
-    value: "HOLD", 
-    label: "Maybe - needs discussion", 
-    color: "bg-yellow-50 border-yellow-200 text-yellow-700", 
+  {
+    value: "HOLD",
+    label: "Maybe - needs discussion",
+    color: "bg-yellow-50 border-yellow-200 text-yellow-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
-    )
+    ),
   },
-  { 
-    value: "REJECT", 
-    label: "Do not proceed", 
-    color: "bg-red-50 border-red-200 text-red-700", 
+  {
+    value: "REJECT",
+    label: "Do not proceed",
+    color: "bg-red-50 border-red-200 text-red-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
-    )
+    ),
   },
 ];
 
-const FeedbackForm = ({ interview, onClose }) => {
-  const dispatch = useDispatch();
-  const { submitLoading } = useSelector((state) => state.interviews);
-  
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  
+const FeedbackForm: React.FC<FeedbackFormProps> = ({ interview, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { submitLoading } = useAppSelector((state) => state.interviews);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FeedbackFormInputs>();
+
   const watchedRecommendation = watch("recommendation");
   const watchedRating = watch("rating");
-  const isSubmitting = submitLoading[interview.id];
+  const isSubmitting = !!submitLoading[interview.id];
 
-  const onSubmit = async (data) => {
+  const onSubmit: SubmitHandler<FeedbackFormInputs> = async (data) => {
     const feedbackData = {
-      rating: parseInt(data.rating),
+      rating: parseInt(data.rating, 10),
       strengths: data.strengths,
       weaknesses: data.weaknesses,
       recommendation: data.recommendation,
       notes: data.notes,
+      comments: `${data.strengths}\n${data.weaknesses}`,
     };
 
-    const result = await dispatch(submitFeedback({
-      interviewId: interview.id,
-      feedbackData
-    }));
-    
+    const result = await dispatch(
+      submitFeedback({
+        interviewId: interview.id,
+        feedbackData,
+      })
+    );
+
     if (submitFeedback.fulfilled.match(result)) {
       onClose();
     }
@@ -86,7 +116,7 @@ const FeedbackForm = ({ interview, onClose }) => {
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0"
+              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0 cursor-pointer"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -104,12 +134,10 @@ const FeedbackForm = ({ interview, onClose }) => {
             </label>
             <div className="flex gap-1.5 md:gap-2">
               {[1, 2, 3, 4, 5].map((rating) => (
-                <label 
-                  key={rating} 
+                <label
+                  key={rating}
                   className={`flex-1 cursor-pointer transition-all ${
-                    watchedRating === String(rating)
-                      ? 'transform scale-105'
-                      : ''
+                    watchedRating === String(rating) ? "transform scale-105" : ""
                   }`}
                 >
                   <input
@@ -118,17 +146,21 @@ const FeedbackForm = ({ interview, onClose }) => {
                     value={rating}
                     className="sr-only"
                   />
-                  <div className={`text-center p-2 md:p-3 rounded-lg border-2 transition-all ${
-                    watchedRating === String(rating)
-                      ? 'border-yellow-400 bg-yellow-50 shadow-md'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}>
+                  <div
+                    className={`text-center p-2 md:p-3 rounded-lg border-2 transition-all ${
+                      watchedRating === String(rating)
+                        ? "border-yellow-400 bg-yellow-50 shadow-md"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
                     <div className="text-xl md:text-2xl mb-0.5 md:mb-1">
-                      {watchedRating === String(rating) ? '★' : '☆'}
+                      {watchedRating === String(rating) ? "★" : "☆"}
                     </div>
-                    <div className={`text-xs font-medium ${
-                      watchedRating === String(rating) ? 'text-yellow-700' : 'text-gray-600'
-                    }`}>
+                    <div
+                      className={`text-xs font-medium ${
+                        watchedRating === String(rating) ? "text-yellow-700" : "text-gray-600"
+                      }`}
+                    >
                       {rating}
                     </div>
                   </div>
@@ -195,12 +227,12 @@ const FeedbackForm = ({ interview, onClose }) => {
             </label>
             <div className="space-y-2">
               {RECOMMENDATION_OPTIONS.map((option) => (
-                <label 
-                  key={option.value} 
+                <label
+                  key={option.value}
                   className={`flex items-center p-3 md:p-4 rounded-lg border-2 cursor-pointer transition-all ${
                     watchedRecommendation === option.value
-                      ? option.color + ' shadow-md'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? `${option.color} shadow-md`
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   <input
@@ -209,19 +241,17 @@ const FeedbackForm = ({ interview, onClose }) => {
                     value={option.value}
                     className="sr-only"
                   />
-                  <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center mr-2 md:mr-3 shrink-0 ${
-                    watchedRecommendation === option.value
-                      ? 'border-current'
-                      : 'border-gray-300'
-                  }`}>
+                  <div
+                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center mr-2 md:mr-3 shrink-0 ${
+                      watchedRecommendation === option.value ? "border-current" : "border-gray-300"
+                    }`}
+                  >
                     {watchedRecommendation === option.value && (
                       <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-current"></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs md:text-sm font-medium">
-                      {option.label}
-                    </span>
+                    <span className="text-xs md:text-sm font-medium">{option.label}</span>
                   </div>
                   <div className="text-current shrink-0">{option.icon}</div>
                 </label>
@@ -257,15 +287,15 @@ const FeedbackForm = ({ interview, onClose }) => {
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Cancel
           </button>
-          
+
           <button
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base"
+            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base cursor-pointer"
           >
             {isSubmitting ? (
               <>
