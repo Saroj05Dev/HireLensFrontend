@@ -1,17 +1,42 @@
-import { useEffect, useState, useRef } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState, useRef } from "react";
 import { getCandidateDecisionLogsApi, getCandidateInterviewsApi } from "./candidate.api";
+import type { Candidate, CandidateStage } from "../../types/candidate.types";
 
-const STAGE_COLORS = {
+interface CandidateProfileProps {
+  candidate: Candidate;
+  onClose: () => void;
+}
+
+interface TimelineEvent {
+  action: "STAGE_CHANGE" | "INTERVIEW_ASSIGNED" | "FEEDBACK_SUBMITTED" | string;
+  from?: CandidateStage;
+  to?: CandidateStage;
+  by?: string;
+  note?: string;
+  timestamp: string;
+}
+
+interface InterviewItem {
+  id: string;
+  status: "COMPLETED" | "SCHEDULED" | string;
+  scheduledAt?: string;
+  interviewer?: {
+    id?: string;
+    name?: string;
+    email?: string;
+  };
+}
+
+const STAGE_COLORS: Record<string, string> = {
   APPLIED: "bg-blue-50 text-blue-700 border-blue-200",
-  SCREENING: "bg-yellow-50 text-yellow-700 border-yellow-200", 
+  SCREENING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   INTERVIEW: "bg-purple-50 text-purple-700 border-purple-200",
   OFFER: "bg-indigo-50 text-indigo-700 border-indigo-200",
   HIRED: "bg-green-50 text-green-700 border-green-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200"
+  REJECTED: "bg-red-50 text-red-700 border-red-200",
 };
 
-const STAGE_ICONS = {
+const STAGE_ICONS: Record<string, React.ReactNode> = {
   APPLIED: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -41,25 +66,23 @@ const STAGE_ICONS = {
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-  )
+  ),
 };
 
-const getResumeOpenUrl = (resumeUrl) => {
+const getResumeOpenUrl = (resumeUrl?: string): string => {
   if (!resumeUrl) return "#";
-  // Route all Cloudinary URLs through Google Docs Viewer so PDFs render in-browser
   if (resumeUrl.includes("res.cloudinary.com")) {
     return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(resumeUrl)}`;
   }
   return resumeUrl;
 };
 
-const CandidateProfile = ({ candidate, onClose }) => {
-  const [activeTab, setActiveTab] = useState("details");
-  const [decisionLogs, setDecisionLogs] = useState([]);
-  const [interviews, setInterviews] = useState([]);
-  const contentRef = useRef(null);
-  const [loading, setLoading] = useState(false);
-  const { user } = useSelector((state) => state.auth);
+const CandidateProfile: React.FC<CandidateProfileProps> = ({ candidate, onClose }) => {
+  const [activeTab, setActiveTab] = useState<"details" | "timeline" | "interviews">("details");
+  const [decisionLogs, setDecisionLogs] = useState<TimelineEvent[]>([]);
+  const [interviews, setInterviews] = useState<InterviewItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (activeTab === "timeline") {
@@ -69,11 +92,11 @@ const CandidateProfile = ({ candidate, onClose }) => {
     }
   }, [activeTab, candidate.id]);
 
-  const loadDecisionLogs = async () => {
+  const loadDecisionLogs = async (): Promise<void> => {
     setLoading(true);
     try {
       const logs = await getCandidateDecisionLogsApi(candidate.id);
-      setDecisionLogs(logs);
+      setDecisionLogs(logs as unknown as TimelineEvent[]);
     } catch (error) {
       console.error("Failed to load decision logs:", error);
     } finally {
@@ -81,11 +104,11 @@ const CandidateProfile = ({ candidate, onClose }) => {
     }
   };
 
-  const loadInterviews = async () => {
+  const loadInterviews = async (): Promise<void> => {
     setLoading(true);
     try {
       const interviewData = await getCandidateInterviewsApi(candidate.id);
-      setInterviews(interviewData);
+      setInterviews(interviewData as InterviewItem[]);
     } catch (error) {
       console.error("Failed to load interviews:", error);
     } finally {
@@ -93,7 +116,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
     }
   };
 
-  const getInitials = (name) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
       .map((n) => n[0])
@@ -102,7 +125,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
       .slice(0, 2);
   };
 
-  const getActionIcon = (actionType) => {
+  const getActionIcon = (actionType: string): React.ReactNode => {
     switch (actionType) {
       case "STAGE_CHANGE":
         return (
@@ -136,7 +159,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
               <div className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm md:text-xl font-bold shadow-lg shrink-0">
                 {getInitials(candidate.name)}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg md:text-2xl font-bold text-gray-900 truncate">{candidate.name}</h2>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1 md:mt-2">
@@ -157,15 +180,19 @@ const CandidateProfile = ({ candidate, onClose }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
-              <div className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg border font-medium text-xs md:text-sm flex-1 sm:flex-none justify-center ${STAGE_COLORS[candidate.currentStage]}`}>
+              <div
+                className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg border font-medium text-xs md:text-sm flex-1 sm:flex-none justify-center ${
+                  STAGE_COLORS[candidate.currentStage] || "bg-gray-100 text-gray-700 border-gray-200"
+                }`}
+              >
                 <div className="shrink-0">{STAGE_ICONS[candidate.currentStage]}</div>
                 <span className="truncate">{candidate.currentStage}</span>
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 md:p-2 transition-colors shrink-0"
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 md:p-2 transition-colors shrink-0 cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -180,7 +207,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
                 href={getResumeOpenUrl(candidate.resumeUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium shadow-sm cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -189,11 +216,14 @@ const CandidateProfile = ({ candidate, onClose }) => {
               </a>
             )}
             <div className="text-xs md:text-sm text-gray-500">
-              Applied {new Date(candidate.createdAt).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+              Applied{" "}
+              {candidate.createdAt
+                ? new Date(candidate.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : "Recently"}
             </div>
           </div>
         </div>
@@ -201,21 +231,36 @@ const CandidateProfile = ({ candidate, onClose }) => {
         <div className="border-b border-gray-200 bg-white sticky top-0 z-10 shrink-0">
           <div className="flex px-4 md:px-6 w-full justify-around md:justify-start md:w-auto md:min-w-max">
             {[
-              { key: "details", label: "Candidate Details", shortLabel: "Details", icon: (
-                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              )},
-              { key: "timeline", label: "Decision Timeline", shortLabel: "Timeline", icon: (
-                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )},
-              { key: "interviews", label: "Interviews", shortLabel: "Interviews", icon: (
-                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              )}
+              {
+                key: "details" as const,
+                label: "Candidate Details",
+                shortLabel: "Details",
+                icon: (
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                ),
+              },
+              {
+                key: "timeline" as const,
+                label: "Decision Timeline",
+                shortLabel: "Timeline",
+                icon: (
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+              },
+              {
+                key: "interviews" as const,
+                label: "Interviews",
+                shortLabel: "Interviews",
+                icon: (
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                ),
+              },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -223,7 +268,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
                   setActiveTab(tab.key);
                   if (contentRef.current) contentRef.current.scrollTop = 0;
                 }}
-                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === tab.key
                     ? "border-blue-600 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -265,11 +310,13 @@ const CandidateProfile = ({ candidate, onClose }) => {
                   <div className="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
                     <span className="text-xs text-gray-500 uppercase tracking-wide">Application Date</span>
                     <p className="mt-1 text-xs md:text-sm font-medium text-gray-900">
-                      {new Date(candidate.createdAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
+                      {candidate.createdAt
+                        ? new Date(candidate.createdAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
@@ -300,7 +347,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
                         href={getResumeOpenUrl(candidate.resumeUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium w-full sm:w-auto justify-center"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
                       >
                         <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -327,7 +374,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
                   <span className="text-xs md:text-sm text-gray-500">{decisionLogs.length} events</span>
                 )}
               </div>
-              
+
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
@@ -346,16 +393,14 @@ const CandidateProfile = ({ candidate, onClose }) => {
               ) : (
                 <div className="relative">
                   <div className="absolute left-4 md:left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                  
+
                   <div className="space-y-4 md:space-y-6">
                     {decisionLogs.map((log, index) => (
                       <div key={index} className="relative flex gap-3 md:gap-4">
                         <div className="relative z-10 flex items-center justify-center w-8 h-8 md:w-12 md:h-12 bg-blue-100 rounded-full border-2 md:border-4 border-white shadow-sm shrink-0">
-                          <div className="text-blue-600">
-                            {getActionIcon(log.action)}
-                          </div>
+                          <div className="text-blue-600">{getActionIcon(log.action)}</div>
                         </div>
-                        
+
                         <div className="flex-1 bg-white rounded-lg border border-gray-200 p-3 md:p-4 shadow-sm hover:shadow-md transition-shadow min-w-0">
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
                             <div className="flex-1 min-w-0">
@@ -365,27 +410,27 @@ const CandidateProfile = ({ candidate, onClose }) => {
                                 {log.action === "FEEDBACK_SUBMITTED" && "Feedback Submitted"}
                               </p>
                               <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
-                                by <span className="font-medium">{log.by}</span>
+                                by <span className="font-medium">{log.by || "System"}</span>
                               </p>
                             </div>
                             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded shrink-0">
-                              {new Date(log.timestamp).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                year: 'numeric'
+                              {new Date(log.timestamp).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
                               })}
                             </span>
                           </div>
                           {log.action === "STAGE_CHANGE" && (
                             <div className="mt-2 md:mt-3 space-y-2">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.from]}`}>
+                                <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.from || ""] || "bg-gray-100 text-gray-700 border-gray-200"}`}>
                                   {log.from}
                                 </span>
                                 <svg className="w-3 h-3 md:w-4 md:h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
-                                <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.to]}`}>
+                                <span className={`text-xs px-2 py-1 rounded border ${STAGE_COLORS[log.to || ""] || "bg-gray-100 text-gray-700 border-gray-200"}`}>
                                   {log.to}
                                 </span>
                               </div>
@@ -419,7 +464,7 @@ const CandidateProfile = ({ candidate, onClose }) => {
                   <span className="text-xs md:text-sm text-gray-500">{interviews.length} interviews</span>
                 )}
               </div>
-              
+
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
@@ -455,30 +500,32 @@ const CandidateProfile = ({ candidate, onClose }) => {
                             </p>
                           </div>
                         </div>
-                        <span className={`text-xs px-2 md:px-3 py-1 rounded-full font-medium shrink-0 ${
-                          interview.status === "COMPLETED" 
-                            ? "bg-green-100 text-green-700" 
-                            : interview.status === "SCHEDULED"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}>
+                        <span
+                          className={`text-xs px-2 md:px-3 py-1 rounded-full font-medium shrink-0 ${
+                            interview.status === "COMPLETED"
+                              ? "bg-green-100 text-green-700"
+                              : interview.status === "SCHEDULED"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
                           {interview.status}
                         </span>
                       </div>
-                      
+
                       {interview.scheduledAt && (
                         <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600 bg-gray-50 rounded-lg p-2 md:p-3">
                           <svg className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                           <span className="break-words">
-                            {new Date(interview.scheduledAt).toLocaleString('en-US', { 
-                              weekday: 'short',
-                              year: 'numeric', 
-                              month: 'short', 
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
+                            {new Date(interview.scheduledAt).toLocaleString("en-US", {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
                             })}
                           </span>
                         </div>

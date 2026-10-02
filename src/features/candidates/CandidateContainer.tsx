@@ -1,13 +1,20 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { getAllCandidates, candidateStageUpdatedRealtime } from "./candidateSlice";
 import { fetchJobs } from "../jobs/jobsSlice";
 import { onCandidateStageUpdated, offSocketEvent } from "../../helpers/socket";
 import CandidateCard from "./CandidateCard";
 import CandidateProfile from "./CandidateProfile";
 import Loader from "../../components/ui/Loader";
+import type { Candidate, CandidateFilters, CandidateStage } from "../../types/candidate.types";
 
-const STAGE_FILTERS = [
+interface StageFilterItem {
+  key: CandidateStage;
+  label: string;
+  color: string;
+}
+
+const STAGE_FILTERS: StageFilterItem[] = [
   { key: "", label: "All Stages", color: "bg-gray-100 text-gray-700" },
   { key: "APPLIED", label: "Applied", color: "bg-blue-100 text-blue-700" },
   { key: "SCREENING", label: "Screening", color: "bg-yellow-100 text-yellow-700" },
@@ -17,16 +24,15 @@ const STAGE_FILTERS = [
   { key: "REJECTED", label: "Rejected", color: "bg-red-100 text-red-700" },
 ];
 
-const CandidateContainer = () => {
-  const dispatch = useDispatch();
-  const { list: candidates, loading, error } = useSelector((state) => state.candidates);
-  const { list: jobs } = useSelector((state) => state.jobs);
-  const { user } = useSelector((state) => state.auth);
-  
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
-  const [filters, setFilters] = useState({
+const CandidateContainer: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { list: candidates, loading, error } = useAppSelector((state) => state.candidates);
+  const { list: jobs } = useAppSelector((state) => state.jobs);
+
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [filters, setFilters] = useState<CandidateFilters>({
     stage: "",
     jobId: "",
   });
@@ -36,9 +42,8 @@ const CandidateContainer = () => {
     dispatch(fetchJobs());
   }, [dispatch, filters]);
 
-  // Set up real-time listener for candidate stage updates
   useEffect(() => {
-    const handleCandidateStageUpdate = (data) => {
+    const handleCandidateStageUpdate = (data: { candidateId: string; toStage: CandidateStage }) => {
       dispatch(candidateStageUpdatedRealtime(data));
     };
 
@@ -49,33 +54,32 @@ const CandidateContainer = () => {
     };
   }, [dispatch]);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+  const handleFilterChange = (key: keyof CandidateFilters, value: string): void => {
+    setFilters((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
-  const handleViewProfile = (candidate) => {
+  const handleViewProfile = (candidate: Candidate): void => {
     setSelectedCandidate(candidate);
   };
 
-  const filteredCandidates = candidates.filter(candidate => {
-    const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
+  const filteredCandidates = candidates.filter((candidate) => {
+    const matchesSearch =
+      candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesStage = !filters.stage || candidate.currentStage === filters.stage;
     const matchesJob = !filters.jobId || candidate.jobId === filters.jobId;
-    
+
     return matchesSearch && matchesStage && matchesJob;
   });
 
-  const getStageCount = (stage) => {
+  const getStageCount = (stage: string): number => {
     if (!stage) return candidates.length;
-    return candidates.filter(c => c.currentStage === stage).length;
+    return candidates.filter((c) => c.currentStage === stage).length;
   };
-
-  const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
 
   if (loading) {
     return (
@@ -106,7 +110,7 @@ const CandidateContainer = () => {
               Click on avatar or name to view candidate profile
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2 md:gap-3">
             <div className="text-xs md:text-sm bg-blue-50 text-blue-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-semibold border border-blue-200">
               {filteredCandidates.length} Total
@@ -119,7 +123,7 @@ const CandidateContainer = () => {
             <button
               key={stage.key}
               onClick={() => handleFilterChange("stage", stage.key)}
-              className={`px-2 md:px-4 py-2 md:py-3 rounded-lg border-2 transition-all text-xs md:text-sm font-medium ${
+              className={`px-2 md:px-4 py-2 md:py-3 rounded-lg border-2 transition-all text-xs md:text-sm font-medium cursor-pointer ${
                 filters.stage === stage.key
                   ? `${stage.color} border-current shadow-md scale-105`
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:shadow-sm"
@@ -174,7 +178,7 @@ const CandidateContainer = () => {
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-1.5 md:p-2 rounded transition-colors ${
+                  className={`p-1.5 md:p-2 rounded transition-colors cursor-pointer ${
                     viewMode === "grid"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
@@ -187,7 +191,7 @@ const CandidateContainer = () => {
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-1.5 md:p-2 rounded transition-colors ${
+                  className={`p-1.5 md:p-2 rounded transition-colors cursor-pointer ${
                     viewMode === "list"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
@@ -206,7 +210,7 @@ const CandidateContainer = () => {
                     setFilters({ stage: "", jobId: "" });
                     setSearchQuery("");
                   }}
-                  className="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap"
+                  className="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap cursor-pointer"
                 >
                   Clear All
                 </button>
@@ -220,10 +224,10 @@ const CandidateContainer = () => {
             <span className="text-xs md:text-sm text-gray-600">Active filters:</span>
             {filters.stage && (
               <span className="inline-flex items-center gap-1 px-2 md:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm">
-                Stage: {STAGE_FILTERS.find(s => s.key === filters.stage)?.label}
+                Stage: {STAGE_FILTERS.find((s) => s.key === filters.stage)?.label}
                 <button
                   onClick={() => handleFilterChange("stage", "")}
-                  className="hover:bg-blue-200 rounded-full p-0.5"
+                  className="hover:bg-blue-200 rounded-full p-0.5 cursor-pointer"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -233,10 +237,10 @@ const CandidateContainer = () => {
             )}
             {filters.jobId && (
               <span className="inline-flex items-center gap-1 px-2 md:px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm">
-                Job: {jobs.find(j => j.id === filters.jobId)?.title}
+                Job: {jobs.find((j) => j.id === filters.jobId)?.title}
                 <button
                   onClick={() => handleFilterChange("jobId", "")}
-                  className="hover:bg-purple-200 rounded-full p-0.5"
+                  className="hover:bg-purple-200 rounded-full p-0.5 cursor-pointer"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -249,7 +253,7 @@ const CandidateContainer = () => {
                 Search: "{searchQuery}"
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="hover:bg-green-200 rounded-full p-0.5"
+                  className="hover:bg-green-200 rounded-full p-0.5 cursor-pointer"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -278,16 +282,17 @@ const CandidateContainer = () => {
             <p className="text-sm md:text-base text-gray-500 mb-4 px-4">
               {filters.stage || filters.jobId || searchQuery
                 ? "Try adjusting your filters or search query"
-                : "Candidates will appear here once they're added to jobs"
-              }
+                : "Candidates will appear here once they're added to jobs"}
             </p>
           </div>
         ) : (
-          <div className={
-            viewMode === "grid"
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
-              : "space-y-2 md:space-y-3"
-          }>
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
+                : "space-y-2 md:space-y-3"
+            }
+          >
             {filteredCandidates.map((candidate) => (
               <CandidateCard
                 key={candidate.id}

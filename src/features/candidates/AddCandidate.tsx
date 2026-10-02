@@ -1,19 +1,45 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { AxiosError } from "axios";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { addCandidate } from "./candidateSlice";
 import { parseResumeApi } from "./candidate.api";
 
-const AddCandidate = ({ jobId, onClose }) => {
-  const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.candidates);
-  const [selectedFileName, setSelectedFileName] = useState("");
-  const [isParsingResume, setIsParsingResume] = useState(false);
-  const [resumeParseError, setResumeParseError] = useState("");
-  
-  const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm();
+interface AddCandidateProps {
+  jobId: string;
+  onClose: () => void;
+}
 
-  const handleResumeFileChange = async (event) => {
+interface AddCandidateFormInputs {
+  name: string;
+  email: string;
+  phone?: string;
+  resumeUrl?: string;
+  resume?: FileList;
+}
+
+interface ApiErrorResponse {
+  message?: string;
+}
+
+const AddCandidate: React.FC<AddCandidateProps> = ({ jobId, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.candidates);
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [isParsingResume, setIsParsingResume] = useState<boolean>(false);
+  const [resumeParseError, setResumeParseError] = useState<string>("");
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<AddCandidateFormInputs>();
+
+  const handleResumeFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const file = event?.target?.files?.[0];
     setSelectedFileName(file ? file.name : "");
     setResumeParseError("");
@@ -45,8 +71,9 @@ const AddCandidate = ({ jobId, onClose }) => {
         setValue("phone", parsed.phone, { shouldValidate: true, shouldDirty: true });
       }
     } catch (error) {
+      const err = error as AxiosError<ApiErrorResponse>;
       setResumeParseError(
-        error.response?.data?.message ||
+        err.response?.data?.message ||
           "Could not parse resume right now. You can still fill details manually."
       );
     } finally {
@@ -54,7 +81,7 @@ const AddCandidate = ({ jobId, onClose }) => {
     }
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit: SubmitHandler<AddCandidateFormInputs> = async (data) => {
     const candidateData = new FormData();
     candidateData.append("jobId", jobId);
     candidateData.append("name", data.name);
@@ -64,7 +91,7 @@ const AddCandidate = ({ jobId, onClose }) => {
     if (data.resume?.[0]) candidateData.append("resume", data.resume[0]);
 
     const result = await dispatch(addCandidate(candidateData));
-    
+
     if (addCandidate.fulfilled.match(result)) {
       onClose();
     }
@@ -74,7 +101,7 @@ const AddCandidate = ({ jobId, onClose }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4 md:p-6">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
@@ -152,12 +179,12 @@ const AddCandidate = ({ jobId, onClose }) => {
                     </svg>
                   </div>
                   <input
-                    {...register("email", { 
+                    {...register("email", {
                       required: "Email is required",
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Invalid email address"
-                      }
+                        message: "Invalid email address",
+                      },
                     })}
                     placeholder="e.g., rahul.sharma@example.com"
                     type="email"
@@ -216,9 +243,12 @@ const AddCandidate = ({ jobId, onClose }) => {
                   accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   {...register("resume", {
                     validate: {
-                      fileSize: (files) => {
+                      fileSize: (files?: FileList) => {
                         if (!files?.[0]) return true;
-                        return files[0].size <= 5 * 1024 * 1024 || "File size must be 5MB or less";
+                        return (
+                          files[0].size <= 5 * 1024 * 1024 ||
+                          "File size must be 5MB or less"
+                        );
                       },
                     },
                     onChange: handleResumeFileChange,

@@ -1,76 +1,77 @@
-import { useState, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useEffect, useRef } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { updateCandidateStage, reopenCandidate } from "./candidateSlice";
 import AssignInterview from "../interviews/AssignInterview";
+import type { Candidate, CandidateStage } from "../../types/candidate.types";
 
-const STAGES = [
-  "APPLIED",
-  "SCREENING", 
-  "INTERVIEW",
-  "OFFER",
-  "HIRED",
-  "REJECTED"
-];
+interface CandidateCardProps {
+  candidate: Candidate;
+  onViewProfile: (candidate: Candidate) => void;
+  isDraggable?: boolean;
+  showStageSelector?: boolean;
+  viewMode?: "grid" | "list";
+}
 
-// Linear order (REJECTED is terminal, handled separately)
-const STAGE_ORDER = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
+const STAGE_ORDER: CandidateStage[] = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
 
-// Returns the only valid next stage + REJECTED (unless already terminal)
-const getNextValidStages = (currentStage) => {
+const getNextValidStages = (currentStage: CandidateStage): CandidateStage[] => {
   if (currentStage === "HIRED" || currentStage === "REJECTED") return [];
   const idx = STAGE_ORDER.indexOf(currentStage);
   const next = idx >= 0 && idx < STAGE_ORDER.length - 1 ? [STAGE_ORDER[idx + 1]] : [];
   return [...next, "REJECTED"];
 };
 
-const getResumeOpenUrl = (resumeUrl) => {
+const getResumeOpenUrl = (resumeUrl?: string): string => {
   if (!resumeUrl) return "#";
-  // Route all Cloudinary URLs through Google Docs Viewer so PDFs render in-browser
   if (resumeUrl.includes("res.cloudinary.com")) {
     return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(resumeUrl)}`;
   }
   return resumeUrl;
 };
 
-const STAGE_COLORS = {
+const STAGE_COLORS: Record<string, string> = {
   APPLIED: "bg-gray-100 text-gray-700",
-  SCREENING: "bg-yellow-100 text-yellow-700", 
+  SCREENING: "bg-yellow-100 text-yellow-700",
   INTERVIEW: "bg-blue-100 text-blue-700",
   OFFER: "bg-purple-100 text-purple-700",
   HIRED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700"
+  REJECTED: "bg-red-100 text-red-700",
 };
 
-const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStageSelector = false, viewMode = "grid" }) => {
-  const dispatch = useDispatch();
-  const { stageUpdateLoading } = useSelector((state) => state.candidates);
-  const { user } = useSelector((state) => state.auth);
-  
-  const [showStageMenu, setShowStageMenu] = useState(false);
-  const [showNoteInput, setShowNoteInput] = useState(false);
-  const [showAssignInterview, setShowAssignInterview] = useState(false);
-  const [showReopenModal, setShowReopenModal] = useState(false);
-  const [selectedStage, setSelectedStage] = useState("");
-  const [note, setNote] = useState("");
-  const [reopenNote, setReopenNote] = useState("");
-  const [stageError, setStageError] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
-  
-  const stageMenuRef = useRef(null);
+const CandidateCard: React.FC<CandidateCardProps> = ({
+  candidate,
+  onViewProfile,
+  isDraggable = false,
+  showStageSelector = false,
+  viewMode = "grid",
+}) => {
+  const dispatch = useAppDispatch();
+  const { stageUpdateLoading } = useAppSelector((state) => state.candidates);
+  const { user } = useAppSelector((state) => state.auth);
 
-  const isUpdating = stageUpdateLoading[candidate.id];
+  const [showStageMenu, setShowStageMenu] = useState<boolean>(false);
+  const [showNoteInput, setShowNoteInput] = useState<boolean>(false);
+  const [showAssignInterview, setShowAssignInterview] = useState<boolean>(false);
+  const [showReopenModal, setShowReopenModal] = useState<boolean>(false);
+  const [selectedStage, setSelectedStage] = useState<CandidateStage>("");
+  const [note, setNote] = useState<string>("");
+  const [reopenNote, setReopenNote] = useState<string>("");
+  const [stageError, setStageError] = useState<string>("");
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const stageMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const isUpdating = !!stageUpdateLoading[candidate.id];
   const canAssignInterview = user?.role === "RECRUITER" && candidate.currentStage === "SCREENING";
   const canReopen = user?.role === "RECRUITER" && candidate.currentStage === "REJECTED";
   const validNextStages = getNextValidStages(candidate.currentStage);
   const isTerminal = candidate.currentStage === "HIRED" || candidate.currentStage === "REJECTED";
-  
-  // Enable stage selector if showStageSelector is true OR if not draggable
+
   const canChangeStage = (showStageSelector || !isDraggable) && !isTerminal;
 
-  // Close stage menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (stageMenuRef.current && !stageMenuRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (stageMenuRef.current && !stageMenuRef.current.contains(event.target as Node)) {
         setShowStageMenu(false);
       }
     };
@@ -83,7 +84,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
     }
   }, [showStageMenu]);
 
-  const getInitials = (name) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
       .map((n) => n[0])
@@ -92,7 +93,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
       .slice(0, 2);
   };
 
-  const handleStageSelect = (stage) => {
+  const handleStageSelect = (stage: CandidateStage): void => {
     if (stage === candidate.currentStage) {
       setShowStageMenu(false);
       return;
@@ -103,72 +104,75 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
     setShowNoteInput(true);
   };
 
-  const handleStageUpdate = async () => {
+  const handleStageUpdate = async (): Promise<void> => {
     setStageError("");
-    const result = await dispatch(updateCandidateStage({
-      candidateId: candidate.id,
-      newStage: selectedStage,
-      note: note.trim()
-    }));
+    const result = await dispatch(
+      updateCandidateStage({
+        candidateId: candidate.id,
+        newStage: selectedStage,
+        note: note.trim(),
+      })
+    );
 
     if (updateCandidateStage.rejected.match(result)) {
-      setStageError(result.payload || "Failed to update stage.");
+      setStageError((result.payload as string) || "Failed to update stage.");
       return;
     }
-    
+
     setShowNoteInput(false);
     setNote("");
     setSelectedStage("");
   };
 
-  const cancelStageUpdate = () => {
+  const cancelStageUpdate = (): void => {
     setShowNoteInput(false);
     setNote("");
     setSelectedStage("");
     setStageError("");
   };
 
-  const handleReopen = async () => {
+  const handleReopen = async (): Promise<void> => {
     setStageError("");
-    const result = await dispatch(reopenCandidate({
-      candidateId: candidate.id,
-      note: reopenNote.trim()
-    }));
+    const result = await dispatch(
+      reopenCandidate({
+        candidateId: candidate.id,
+        note: reopenNote.trim(),
+      })
+    );
     if (reopenCandidate.rejected.match(result)) {
-      setStageError(result.payload || "Failed to reopen candidate.");
+      setStageError((result.payload as string) || "Failed to reopen candidate.");
       return;
     }
     setShowReopenModal(false);
     setReopenNote("");
   };
 
-  // Drag handlers
-  const handleDragStart = (e) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>): void => {
     if (!isDraggable) return;
-    
+
     setIsDragging(true);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("candidateId", candidate.id);
     e.dataTransfer.setData("currentStage", candidate.currentStage);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (): void => {
     setIsDragging(false);
   };
 
   if (viewMode === "list") {
     return (
       <>
-        <div 
+        <div
           draggable={isDraggable}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           className={`bg-white p-3 md:p-4 rounded-lg border shadow-sm transition-all ${
-            isDragging 
-              ? "opacity-50 cursor-grabbing" 
-              : isDraggable 
-                ? "hover:shadow-md cursor-grab" 
-                : "hover:shadow-md"
+            isDragging
+              ? "opacity-50 cursor-grabbing"
+              : isDraggable
+              ? "hover:shadow-md cursor-grab"
+              : "hover:shadow-md"
           }`}
         >
           <div className="flex items-center gap-2 md:gap-4">
@@ -178,7 +182,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               </svg>
             )}
 
-            <div 
+            <div
               onClick={() => onViewProfile(candidate)}
               className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm md:text-base font-bold shrink-0 cursor-pointer hover:shadow-lg transition-shadow"
             >
@@ -186,7 +190,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
             </div>
 
             <div className="flex-1 min-w-0">
-              <h4 
+              <h4
                 className="text-sm md:text-base font-semibold text-gray-900 cursor-pointer hover:text-blue-600 truncate"
                 onClick={() => onViewProfile(candidate)}
               >
@@ -200,8 +204,14 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 <button
                   onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
                   disabled={isUpdating || !canChangeStage}
-                  title={candidate.currentStage === "HIRED" ? "Final state — cannot be moved" : candidate.currentStage === "REJECTED" ? "Use Reopen to re-evaluate" : undefined}
-                  className={`text-xs px-2 md:px-3 py-1 md:py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage]} ${
+                  title={
+                    candidate.currentStage === "HIRED"
+                      ? "Final state — cannot be moved"
+                      : candidate.currentStage === "REJECTED"
+                      ? "Use Reopen to re-evaluate"
+                      : undefined
+                  }
+                  className={`text-xs px-2 md:px-3 py-1 md:py-1.5 rounded-full font-medium ${STAGE_COLORS[candidate.currentStage] || "bg-gray-100 text-gray-700"} ${
                     canChangeStage ? "hover:opacity-80 cursor-pointer" : "cursor-default opacity-75"
                   } disabled:opacity-50`}
                 >
@@ -213,9 +223,11 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                       </svg>
                       Updating
                     </span>
-                  ) : candidate.currentStage}
+                  ) : (
+                    candidate.currentStage
+                  )}
                 </button>
-                
+
                 {showStageMenu && canChangeStage && (
                   <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-40">
                     <p className="px-3 pt-2 pb-1 text-xs text-gray-400 font-medium uppercase tracking-wide">Move to</p>
@@ -250,10 +262,10 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 </a>
               )}
 
-            {canAssignInterview && (
+              {canAssignInterview && (
                 <button
                   onClick={() => setShowAssignInterview(true)}
-                  className="hidden sm:inline-flex text-xs bg-green-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg hover:bg-green-700 font-medium whitespace-nowrap"
+                  className="hidden sm:inline-flex text-xs bg-green-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg hover:bg-green-700 font-medium whitespace-nowrap cursor-pointer"
                 >
                   Assign Interview
                 </button>
@@ -262,21 +274,20 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 <button
                   onClick={() => setShowReopenModal(true)}
                   disabled={isUpdating}
-                  className="hidden sm:inline-flex text-xs bg-amber-500 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg hover:bg-amber-600 font-medium whitespace-nowrap disabled:opacity-50"
+                  className="hidden sm:inline-flex text-xs bg-amber-500 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg hover:bg-amber-600 font-medium whitespace-nowrap disabled:opacity-50 cursor-pointer"
                 >
                   Reopen
                 </button>
               )}
             </div>
           </div>
-          
-          {/* Mobile action button row */}
+
           {(canAssignInterview || canReopen) && (
             <div className="mt-2 sm:hidden flex gap-2">
               {canAssignInterview && (
                 <button
                   onClick={() => setShowAssignInterview(true)}
-                  className="flex-1 text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium"
+                  className="flex-1 text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium cursor-pointer"
                 >
                   Assign Interview
                 </button>
@@ -285,7 +296,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 <button
                   onClick={() => setShowReopenModal(true)}
                   disabled={isUpdating}
-                  className="flex-1 text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium disabled:opacity-50"
+                  className="flex-1 text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium disabled:opacity-50 cursor-pointer"
                 >
                   Reopen
                 </button>
@@ -301,7 +312,6 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
           />
         )}
 
-        {/* Stage update modal */}
         {showNoteInput && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
             <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -310,7 +320,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 <span className={selectedStage === "REJECTED" ? "text-red-600" : "text-blue-600"}>{selectedStage}</span>
               </h3>
               <p className="text-xs text-gray-500 mb-3">From: {candidate.currentStage}</p>
-              
+
               {stageError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs mb-3">
                   {stageError}
@@ -325,19 +335,19 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 className="w-full border border-gray-300 px-3 py-2 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                 rows={3}
               />
-              
+
               <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
                 <button
                   onClick={cancelStageUpdate}
                   disabled={isUpdating}
-                  className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleStageUpdate}
                   disabled={isUpdating}
-                  className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 ${
+                  className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer ${
                     selectedStage === "REJECTED" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
                   }`}
                 >
@@ -354,7 +364,6 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
           </div>
         )}
 
-        {/* Reopen modal */}
         {showReopenModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
             <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -375,7 +384,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                   {stageError}
                 </div>
               )}
-              
+
               <textarea
                 value={reopenNote}
                 onChange={(e) => setReopenNote(e.target.value)}
@@ -383,18 +392,18 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 className="w-full border border-gray-300 px-3 py-2 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 rows={3}
               />
-              
+
               <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
                 <button
                   onClick={() => { setShowReopenModal(false); setReopenNote(""); setStageError(""); }}
-                  className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleReopen}
                   disabled={isUpdating}
-                  className="px-4 py-2 text-xs md:text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                  className="px-4 py-2 text-xs md:text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer"
                 >
                   {isUpdating && (
                     <svg className="animate-spin -ml-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -414,16 +423,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
 
   return (
     <>
-      <div 
+      <div
         draggable={isDraggable}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         className={`bg-white p-4 md:p-5 rounded-xl border-2 border-gray-200 shadow-sm transition-all hover:shadow-lg hover:border-blue-300 ${
-          isDragging 
-            ? "opacity-50 cursor-grabbing scale-95" 
-            : isDraggable 
-              ? "cursor-grab" 
-              : ""
+          isDragging
+            ? "opacity-50 cursor-grabbing scale-95"
+            : isDraggable
+            ? "cursor-grab"
+            : ""
         }`}
       >
         {/* Header with Avatar and Stage */}
@@ -435,7 +444,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               </svg>
             )}
             <div className="relative">
-              <div 
+              <div
                 onClick={() => onViewProfile(candidate)}
                 className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md cursor-pointer hover:shadow-lg transition-shadow"
               >
@@ -443,19 +452,25 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               </div>
             </div>
           </div>
-          
+
           <div className="relative shrink-0" ref={stageMenuRef}>
             <button
               onClick={() => canChangeStage && setShowStageMenu(!showStageMenu)}
               disabled={isUpdating || !canChangeStage}
-              title={candidate.currentStage === "HIRED" ? "Final state — cannot be moved" : candidate.currentStage === "REJECTED" ? "Use Reopen to re-evaluate" : undefined}
-              className={`text-xs px-2.5 py-1 rounded-full font-medium shadow-sm ${STAGE_COLORS[candidate.currentStage]} ${
+              title={
+                candidate.currentStage === "HIRED"
+                  ? "Final state — cannot be moved"
+                  : candidate.currentStage === "REJECTED"
+                  ? "Use Reopen to re-evaluate"
+                  : undefined
+              }
+              className={`text-xs px-2.5 py-1 rounded-full font-medium shadow-sm ${STAGE_COLORS[candidate.currentStage] || "bg-gray-100 text-gray-700"} ${
                 canChangeStage ? "hover:opacity-80 cursor-pointer hover:shadow-md" : "cursor-default opacity-75"
               } disabled:opacity-50 transition-all`}
             >
               {isUpdating ? "..." : candidate.currentStage}
             </button>
-            
+
             {showStageMenu && canChangeStage && (
               <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 min-w-40">
                 <p className="px-3 pt-2 pb-1 text-xs text-gray-400 font-medium uppercase tracking-wide">Move to</p>
@@ -479,7 +494,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
 
         {/* Candidate Info */}
         <div className="mb-4">
-          <h4 
+          <h4
             className="font-bold text-base md:text-lg text-gray-900 cursor-pointer hover:text-blue-600 transition-colors mb-1 truncate"
             onClick={() => onViewProfile(candidate)}
           >
@@ -491,7 +506,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
             </svg>
             {candidate.email}
           </p>
-          
+
           {candidate.phone && (
             <p className="text-xs md:text-sm text-gray-500 mt-1 flex items-center gap-1.5">
               <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -508,16 +523,16 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            {new Date(candidate.createdAt).toLocaleDateString()}
+            {candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString() : ""}
           </div>
-          
+
           <div className="flex items-center gap-2">
             {candidate.resumeUrl && (
               <a
                 href={getResumeOpenUrl(candidate.resumeUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                 title="View Resume"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -525,11 +540,11 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 </svg>
               </a>
             )}
-            
+
             {canAssignInterview && (
               <button
                 onClick={() => setShowAssignInterview(true)}
-                className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium shadow-sm transition-all hover:shadow-md"
+                className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium shadow-sm transition-all hover:shadow-md cursor-pointer"
               >
                 Assign Interview
               </button>
@@ -539,7 +554,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               <button
                 onClick={() => setShowReopenModal(true)}
                 disabled={isUpdating}
-                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium shadow-sm transition-all hover:shadow-md disabled:opacity-50 cursor-pointer"
               >
                 Reopen
               </button>
@@ -555,7 +570,6 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
         />
       )}
 
-      {/* Stage update modal */}
       {showNoteInput && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -570,7 +584,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 {stageError}
               </div>
             )}
-            
+
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -578,18 +592,18 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               className="w-full border border-gray-300 px-3 py-2 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={3}
             />
-            
+
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
               <button
                 onClick={cancelStageUpdate}
-                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleStageUpdate}
                 disabled={isUpdating}
-                className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg disabled:opacity-50 ${
+                className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg disabled:opacity-50 cursor-pointer ${
                   selectedStage === "REJECTED" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
@@ -600,7 +614,6 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
         </div>
       )}
 
-      {/* Reopen modal */}
       {showReopenModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -621,7 +634,7 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
                 {stageError}
               </div>
             )}
-            
+
             <textarea
               value={reopenNote}
               onChange={(e) => setReopenNote(e.target.value)}
@@ -629,18 +642,18 @@ const CandidateCard = ({ candidate, onViewProfile, isDraggable = false, showStag
               className="w-full border border-gray-300 px-3 py-2 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               rows={3}
             />
-            
+
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
               <button
                 onClick={() => { setShowReopenModal(false); setReopenNote(""); setStageError(""); }}
-                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReopen}
                 disabled={isUpdating}
-                className="px-4 py-2 text-xs md:text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50"
+                className="px-4 py-2 text-xs md:text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 cursor-pointer"
               >
                 {isUpdating ? "Reopening..." : "Reopen Candidate"}
               </button>

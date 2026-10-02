@@ -1,13 +1,24 @@
+import React from "react";
 import CandidateCard from "./CandidateCard";
 import CandidateProfile from "./CandidateProfile";
+import type { Candidate } from "../../types/candidate.types";
 
-const CandidatePresenter = ({ 
-  candidates, 
-  loading, 
-  error, 
-  selectedCandidate, 
-  onViewProfile, 
-  onCloseProfile 
+interface CandidatePresenterProps {
+  candidates: Candidate[];
+  loading: boolean;
+  error?: string | null;
+  selectedCandidate: Candidate | null;
+  onViewProfile: (candidate: Candidate) => void;
+  onCloseProfile: () => void;
+}
+
+const CandidatePresenter: React.FC<CandidatePresenterProps> = ({
+  candidates,
+  loading,
+  error,
+  selectedCandidate,
+  onViewProfile,
+  onCloseProfile,
 }) => {
   if (loading) {
     return <p className="text-gray-500">Loading candidates...</p>;
