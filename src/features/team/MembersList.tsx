@@ -1,30 +1,31 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { deactivateMember, selectMembers } from "./teamSlice";
+import type { TeamMember } from "../../types/team.types";
 
-const MembersList = () => {
-  const dispatch = useDispatch();
-  const members = useSelector(selectMembers);
-  const { user } = useSelector((state) => state.auth);
+const MembersList: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const members = useAppSelector(selectMembers);
+  const { user } = useAppSelector((state) => state.auth);
 
-  const [confirmDeactivate, setConfirmDeactivate] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [confirmDeactivate, setConfirmDeactivate] = useState<TeamMember | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const handleDeactivateClick = (member) => {
+  const handleDeactivateClick = (member: TeamMember): void => {
     setConfirmDeactivate(member);
     setSuccessMessage("");
     setErrorMessage("");
   };
 
-  const handleConfirmDeactivate = async () => {
-    if (!confirmDeactivate) return;
+  const handleConfirmDeactivate = async (): Promise<void> => {
+    if (!confirmDeactivate || !user?.organizationId) return;
 
     try {
       await dispatch(
         deactivateMember({
           orgId: user.organizationId,
-          userId: confirmDeactivate.id, // Use 'id' instead of '_id'
+          userId: confirmDeactivate.id,
         })
       ).unwrap();
 
@@ -32,23 +33,20 @@ const MembersList = () => {
         `${confirmDeactivate.name} has been deactivated successfully`
       );
       setConfirmDeactivate(null);
-
-      // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(""), 5000);
-    } catch (error) {
+    } catch (error: any) {
       setErrorMessage(error || "Failed to deactivate member");
       setConfirmDeactivate(null);
-
-      // Clear error message after 5 seconds
       setTimeout(() => setErrorMessage(""), 5000);
     }
   };
 
-  const handleCancelDeactivate = () => {
+  const handleCancelDeactivate = (): void => {
     setConfirmDeactivate(null);
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -59,7 +57,6 @@ const MembersList = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header */}
       <div className="p-4 md:p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
@@ -74,7 +71,6 @@ const MembersList = () => {
         </div>
       </div>
 
-      {/* Success Message */}
       {successMessage && (
         <div className="mx-3 md:mx-6 mt-3 md:mt-4 bg-green-50 border border-green-200 text-green-700 px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center justify-between text-xs md:text-sm">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -95,7 +91,7 @@ const MembersList = () => {
           </div>
           <button
             onClick={() => setSuccessMessage("")}
-            className="text-green-700 hover:text-green-900 shrink-0 ml-2"
+            className="text-green-700 hover:text-green-900 shrink-0 ml-2 cursor-pointer"
           >
             <svg
               className="w-4 h-4 md:w-5 md:h-5"
@@ -114,7 +110,6 @@ const MembersList = () => {
         </div>
       )}
 
-      {/* Error Message */}
       {errorMessage && (
         <div className="mx-3 md:mx-6 mt-3 md:mt-4 bg-red-50 border border-red-200 text-red-700 px-3 md:px-4 py-2 md:py-3 rounded-lg flex items-center justify-between text-xs md:text-sm">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -135,7 +130,7 @@ const MembersList = () => {
           </div>
           <button
             onClick={() => setErrorMessage("")}
-            className="text-red-700 hover:text-red-900 shrink-0 ml-2"
+            className="text-red-700 hover:text-red-900 shrink-0 ml-2 cursor-pointer"
           >
             <svg
               className="w-4 h-4 md:w-5 md:h-5"
@@ -154,7 +149,6 @@ const MembersList = () => {
         </div>
       )}
 
-      {/* Members List */}
       <div className="divide-y divide-gray-100">
         {members.length === 0 ? (
           <div className="p-8 text-center">
@@ -190,33 +184,25 @@ const MembersList = () => {
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-0 sm:justify-between">
                 <div className="flex items-center gap-3 md:gap-4 flex-1 w-full sm:w-auto min-w-0">
-                  {/* Avatar */}
                   <div
                     className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 ${
-                      member.isActive
-                        ? "bg-blue-100"
-                        : "bg-gray-200"
+                      member.isActive ? "bg-blue-100" : "bg-gray-200"
                     }`}
                   >
                     <span
                       className={`font-semibold text-sm md:text-base ${
-                        member.isActive
-                          ? "text-blue-600"
-                          : "text-gray-500"
+                        member.isActive ? "text-blue-600" : "text-gray-500"
                       }`}
                     >
                       {member.name?.charAt(0).toUpperCase() || "?"}
                     </span>
                   </div>
 
-                  {/* Member Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <p
                         className={`text-xs md:text-sm font-medium truncate ${
-                          member.isActive
-                            ? "text-gray-900"
-                            : "text-gray-600"
+                          member.isActive ? "text-gray-900" : "text-gray-600"
                         }`}
                       >
                         {member.name}
@@ -234,9 +220,7 @@ const MembersList = () => {
                     </div>
                     <p
                       className={`text-xs md:text-sm truncate ${
-                        member.isActive
-                          ? "text-gray-500"
-                          : "text-gray-400"
+                        member.isActive ? "text-gray-500" : "text-gray-400"
                       }`}
                     >
                       {member.email}
@@ -247,7 +231,6 @@ const MembersList = () => {
                   </div>
                 </div>
 
-                {/* Role and Actions */}
                 <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto sm:ml-4">
                   <span
                     className={`px-2 md:px-3 py-1 text-xs font-medium rounded-full ${
@@ -262,7 +245,7 @@ const MembersList = () => {
                   {member.isActive && (
                     <button
                       onClick={() => handleDeactivateClick(member)}
-                      className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                      className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                     >
                       Deactivate
                     </button>
@@ -274,11 +257,9 @@ const MembersList = () => {
         )}
       </div>
 
-      {/* Confirmation Dialog */}
       {confirmDeactivate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4 pb-20 md:pb-4">
           <div className="bg-white rounded-xl w-full max-w-md shadow-2xl">
-            {/* Dialog Header */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -307,27 +288,25 @@ const MembersList = () => {
               </div>
             </div>
 
-            {/* Dialog Content */}
             <div className="p-6">
               <p className="text-sm text-gray-700">
                 Are you sure you want to deactivate{" "}
-                <span className="font-semibold">{confirmDeactivate.name}</span>{" "}
-                ({confirmDeactivate.email})? They will no longer be able to
-                access the platform.
+                <span className="font-semibold">{confirmDeactivate.name}</span> (
+                {confirmDeactivate.email})? They will no longer be able to access
+                the platform.
               </p>
             </div>
 
-            {/* Dialog Footer */}
             <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
               <button
                 onClick={handleCancelDeactivate}
-                className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDeactivate}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium cursor-pointer"
               >
                 Deactivate
               </button>

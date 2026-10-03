@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   inviteUser,
   setInviteModalOpen,
@@ -8,32 +8,31 @@ import {
   selectLastCreatedInvite,
   clearLastCreatedInvite,
 } from "./teamSlice";
+import type { TeamRole } from "../../types/team.types";
 
-const InviteUserModal = () => {
-  const dispatch = useDispatch();
-  const loading = useSelector(selectTeamLoading);
-  const error = useSelector(selectTeamError);
-  const lastCreatedInvite = useSelector(selectLastCreatedInvite);
+const InviteUserModal: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const loading = useAppSelector(selectTeamLoading);
+  const error = useAppSelector(selectTeamError);
+  const lastCreatedInvite = useAppSelector(selectLastCreatedInvite);
 
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [roleError, setRoleError] = useState("");
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [role, setRole] = useState<TeamRole>("");
+  const [emailError, setEmailError] = useState<string>("");
+  const [roleError, setRoleError] = useState<string>("");
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
-  const validateEmail = (email) => {
+  const validateEmail = (val: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(val);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
-    // Reset errors
     setEmailError("");
     setRoleError("");
 
-    // Validate email
     if (!email.trim()) {
       setEmailError("Email is required");
       return;
@@ -44,17 +43,15 @@ const InviteUserModal = () => {
       return;
     }
 
-    // Validate role
     if (!role) {
       setRoleError("Please select a role");
       return;
     }
 
-    // Submit invitation
     await dispatch(inviteUser({ email: email.trim(), role }));
   };
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     dispatch(setInviteModalOpen(false));
     dispatch(clearLastCreatedInvite());
     setEmail("");
@@ -64,10 +61,9 @@ const InviteUserModal = () => {
     setCopySuccess(false);
   };
 
-  const handleCopyToClipboard = async () => {
+  const handleCopyToClipboard = async (): Promise<void> => {
     if (!lastCreatedInvite?.invite?.token) return;
 
-    // Construct URL using current origin for local development
     const inviteUrl = `${window.location.origin}/invite/${lastCreatedInvite.invite.token}`;
 
     try {
@@ -102,9 +98,7 @@ const InviteUserModal = () => {
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Invite User
-                </h2>
+                <h2 className="text-xl font-bold text-gray-900">Invite User</h2>
                 <p className="text-sm text-gray-600 mt-0.5">
                   Add a new member to your team
                 </p>
@@ -113,7 +107,7 @@ const InviteUserModal = () => {
             <button
               onClick={handleClose}
               disabled={loading}
-              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-2 transition-colors"
+              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-2 transition-colors cursor-pointer"
             >
               <svg
                 className="w-5 h-5"
@@ -132,13 +126,12 @@ const InviteUserModal = () => {
           </div>
         </div>
 
-        {/* Form or Success Message */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {lastCreatedInvite ? (
-            // Success State - Show Invitation URL
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                   <svg
                     className="w-5 h-5 text-green-600"
                     fill="none"
@@ -160,7 +153,7 @@ const InviteUserModal = () => {
                   <p className="text-sm text-green-700">
                     An invitation has been created for{" "}
                     <span className="font-medium">
-                      {lastCreatedInvite.invite.email}
+                      {lastCreatedInvite.invite?.email}
                     </span>
                   </p>
                 </div>
@@ -173,13 +166,13 @@ const InviteUserModal = () => {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    value={`${window.location.origin}/invite/${lastCreatedInvite.invite.token}`}
+                    value={`${window.location.origin}/invite/${lastCreatedInvite.invite?.token}`}
                     readOnly
                     className="flex-1 border-2 border-gray-300 px-4 py-2 rounded-lg bg-gray-50 text-sm text-gray-700 focus:outline-none"
                   />
                   <button
                     onClick={handleCopyToClipboard}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 flex-shrink-0"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shrink-0 cursor-pointer"
                   >
                     {copySuccess ? (
                       <>
@@ -240,19 +233,17 @@ const InviteUserModal = () => {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  <span className="font-semibold">Next steps:</span> Share this
-                  link with the invitee. The invitation will expire in 7 days.
+                  <span className="font-semibold">Next steps:</span> Share this link
+                  with the invitee. The invitation will expire in 7 days.
                 </p>
               </div>
             </div>
           ) : (
-            // Form State
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 text-red-600 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -268,7 +259,6 @@ const InviteUserModal = () => {
                 </div>
               )}
 
-              {/* Email Input */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Email Address *
@@ -282,9 +272,7 @@ const InviteUserModal = () => {
                   }}
                   placeholder="priya.patel@company.com"
                   className={`w-full border-2 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                    emailError
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-300"
+                    emailError ? "border-red-300 bg-red-50" : "border-gray-300"
                   }`}
                   disabled={loading}
                 />
@@ -308,7 +296,6 @@ const InviteUserModal = () => {
                 )}
               </div>
 
-              {/* Role Selection */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">
                   Role *
@@ -420,7 +407,7 @@ const InviteUserModal = () => {
           {lastCreatedInvite ? (
             <button
               onClick={handleClose}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer"
             >
               Done
             </button>
@@ -430,15 +417,15 @@ const InviteUserModal = () => {
                 type="button"
                 onClick={handleClose}
                 disabled={loading}
-                className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Cancel
               </button>
 
               <button
-                onClick={handleSubmit}
+                onClick={handleSubmit as any}
                 disabled={loading}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2 shadow-sm"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2 shadow-sm cursor-pointer"
               >
                 {loading ? (
                   <>
