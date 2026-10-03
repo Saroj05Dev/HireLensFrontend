@@ -153,6 +153,11 @@ const candidateSlice = createSlice({
     ) => {
       const { candidateId, toStage } = action.payload;
 
+      // Ensure state.list is an array
+      if (!Array.isArray(state.list)) {
+        state.list = [];
+      }
+
       // Update in main list
       const candidate = state.list.find((c) => c.id === candidateId);
       if (candidate) {
@@ -160,14 +165,19 @@ const candidateSlice = createSlice({
       }
 
       // Update in job-specific lists
-      Object.keys(state.candidatesByJob).forEach((jobId) => {
-        const jobCandidate = state.candidatesByJob[jobId]?.find(
-          (c) => c.id === candidateId
-        );
-        if (jobCandidate) {
-          jobCandidate.currentStage = toStage;
-        }
-      });
+      if (state.candidatesByJob) {
+        Object.keys(state.candidatesByJob).forEach((jobId) => {
+          const jobCandidates = state.candidatesByJob[jobId];
+          if (Array.isArray(jobCandidates)) {
+            const jobCandidate = jobCandidates.find(
+              (c) => c.id === candidateId
+            );
+            if (jobCandidate) {
+              jobCandidate.currentStage = toStage;
+            }
+          }
+        });
+      }
 
       // Update selected candidate if it's the same one
       if (state.selectedCandidate?.id === candidateId) {
@@ -184,10 +194,16 @@ const candidateSlice = createSlice({
       })
       .addCase(addCandidate.fulfilled, (state, action: PayloadAction<Candidate>) => {
         state.loading = false;
+        
+        // Ensure state.list is an array
+        if (!Array.isArray(state.list)) {
+          state.list = [];
+        }
+        
         state.list.unshift(action.payload);
 
         const jobId = action.payload.jobId;
-        if (state.candidatesByJob[jobId]) {
+        if (state.candidatesByJob && state.candidatesByJob[jobId] && Array.isArray(state.candidatesByJob[jobId])) {
           state.candidatesByJob[jobId].unshift(action.payload);
         }
       })
@@ -234,19 +250,29 @@ const candidateSlice = createSlice({
         const { candidateId, newStage } = action.payload;
         state.stageUpdateLoading[candidateId] = false;
 
+        // Ensure state.list is an array
+        if (!Array.isArray(state.list)) {
+          state.list = [];
+        }
+
         const candidate = state.list.find((c) => c.id === candidateId);
         if (candidate) {
           candidate.currentStage = newStage;
         }
 
-        Object.keys(state.candidatesByJob).forEach((jobId) => {
-          const jobCandidate = state.candidatesByJob[jobId]?.find(
-            (c) => c.id === candidateId
-          );
-          if (jobCandidate) {
-            jobCandidate.currentStage = newStage;
-          }
-        });
+        if (state.candidatesByJob) {
+          Object.keys(state.candidatesByJob).forEach((jobId) => {
+            const jobCandidates = state.candidatesByJob[jobId];
+            if (Array.isArray(jobCandidates)) {
+              const jobCandidate = jobCandidates.find(
+                (c) => c.id === candidateId
+              );
+              if (jobCandidate) {
+                jobCandidate.currentStage = newStage;
+              }
+            }
+          });
+        }
 
         if (state.selectedCandidate?.id === candidateId) {
           state.selectedCandidate.currentStage = newStage;
@@ -271,10 +297,21 @@ const candidateSlice = createSlice({
           if (c) c.currentStage = newStage;
         };
 
+        // Ensure state.list is an array
+        if (!Array.isArray(state.list)) {
+          state.list = [];
+        }
+
         applyChange(state.list.find((c) => c.id === candidateId));
-        Object.values(state.candidatesByJob).forEach((list) =>
-          applyChange(list.find((c) => c.id === candidateId))
-        );
+        
+        if (state.candidatesByJob) {
+          Object.values(state.candidatesByJob).forEach((list) => {
+            if (Array.isArray(list)) {
+              applyChange(list.find((c) => c.id === candidateId));
+            }
+          });
+        }
+        
         if (state.selectedCandidate?.id === candidateId) {
           state.selectedCandidate.currentStage = newStage;
         }
