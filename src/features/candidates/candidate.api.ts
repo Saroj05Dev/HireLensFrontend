@@ -39,10 +39,21 @@ export const getAllCandidatesApi = async (
   if (filters.stage) params.append("stage", filters.stage);
   if (filters.jobId) params.append("jobId", filters.jobId);
 
-  const response = await axiosInstance.get<{ data: Candidate[] }>(
-    `/candidates?${params.toString()}`
-  );
-  return response.data.data;
+  console.log('getAllCandidatesApi: Making request to:', `/candidates?${params.toString()}`);
+  
+  const response = await axiosInstance.get<{ 
+    success: boolean;
+    data: { 
+      candidates: Candidate[];
+      counts: any;
+    };
+    message: string;
+  }>(`/candidates?${params.toString()}`);
+  
+  console.log('getAllCandidatesApi: Response received:', response.data);
+  
+  // Return the candidates array from the nested structure
+  return response.data.data.candidates;
 };
 
 // Update candidate stage

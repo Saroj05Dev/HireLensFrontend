@@ -60,10 +60,13 @@ export const getAllCandidates = createAsyncThunk<
   { rejectValue: string }
 >("candidates/getAllCandidates", async (filters = {}, { rejectWithValue }) => {
   try {
+    console.log('getAllCandidates thunk: Starting with filters:', filters);
     const res = await getAllCandidatesApi(filters);
+    console.log('getAllCandidates thunk: Success, received:', res);
     return res;
   } catch (error) {
     const err = error as AxiosError<ApiErrorResponse>;
+    console.error('getAllCandidates thunk: Error:', error);
     return rejectWithValue(err.response?.data?.message || "Failed to get candidates");
   }
 });
