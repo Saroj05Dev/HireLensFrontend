@@ -113,8 +113,8 @@ const InterviewsContainer: React.FC = () => {
       .slice(0, 2);
   };
 
-  const pendingCount = interviews.filter((i) => i.status === "ASSIGNED").length;
-  const completedCount = interviews.filter((i) => i.status === "COMPLETED").length;
+  const pendingCount = (interviews || []).filter((i) => i.status === "ASSIGNED").length;
+  const completedCount = (interviews || []).filter((i) => i.status === "COMPLETED").length;
 
   if (loading) {
     return (

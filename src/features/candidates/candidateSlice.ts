@@ -233,7 +233,7 @@ const candidateSlice = createSlice({
         state.loading = true;
       })
       .addCase(getAllCandidates.fulfilled, (state, action: PayloadAction<Candidate[]>) => {
-        state.list = action.payload;
+        state.list = Array.isArray(action.payload) ? action.payload : [];
         state.loading = false;
       })
       .addCase(getAllCandidates.rejected, (state, action) => {

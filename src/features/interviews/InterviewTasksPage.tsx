@@ -75,15 +75,15 @@ const InterviewTasksPage: React.FC = () => {
     };
   }, [dispatch, user?.id]);
 
-  const pendingInterviews = myInterviews.filter((i) => i.status === "ASSIGNED");
-  const completedInterviews = myInterviews.filter(
+  const pendingInterviews = (myInterviews || []).filter((i) => i.status === "ASSIGNED");
+  const completedInterviews = (myInterviews || []).filter(
     (i) => i.status === "COMPLETED"
   );
 
   const filterInterviews = (interviews: Interview[]): Interview[] => {
-    if (!searchQuery) return interviews;
+    if (!searchQuery) return interviews || [];
 
-    return interviews.filter((interview) => {
+    return (interviews || []).filter((interview) => {
       const candidateName = interview.candidate?.name?.toLowerCase() || "";
       const jobTitle = interview.job?.title?.toLowerCase() || "";
       return (

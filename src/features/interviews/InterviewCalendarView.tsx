@@ -59,7 +59,7 @@ const InterviewCalendarView: React.FC<InterviewCalendarViewProps> = ({
   // Get interviews for a specific date
   const getInterviewsForDate = (date: Date): Interview[] => {
     const dateStr = format(date, "yyyy-MM-dd");
-    return interviews.filter((interview) => {
+    return (interviews || []).filter((interview) => {
       const interviewDate = format(new Date(interview.scheduledAt), "yyyy-MM-dd");
       return interviewDate === dateStr;
     });

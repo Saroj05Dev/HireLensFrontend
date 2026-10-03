@@ -52,7 +52,7 @@ const SearchBar: React.FC = () => {
 
     const query = searchQuery.toLowerCase();
     
-    const filteredCandidates = candidates
+    const filteredCandidates = (candidates || [])
       .filter((c) => 
         c.name.toLowerCase().includes(query) || 
         c.email.toLowerCase().includes(query) ||
@@ -60,7 +60,7 @@ const SearchBar: React.FC = () => {
       )
       .slice(0, 5);
 
-    const filteredJobs = jobs
+    const filteredJobs = (jobs || [])
       .filter((j) => 
         j.title.toLowerCase().includes(query) ||
         j.description?.toLowerCase().includes(query) ||

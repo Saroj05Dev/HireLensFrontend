@@ -65,7 +65,7 @@ const CandidateContainer: React.FC = () => {
     setSelectedCandidate(candidate);
   };
 
-  const filteredCandidates = candidates.filter((candidate) => {
+  const filteredCandidates = (candidates || []).filter((candidate) => {
     const matchesSearch =
       candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -77,8 +77,8 @@ const CandidateContainer: React.FC = () => {
   });
 
   const getStageCount = (stage: string): number => {
-    if (!stage) return candidates.length;
-    return candidates.filter((c) => c.currentStage === stage).length;
+    if (!stage) return (candidates || []).length;
+    return (candidates || []).filter((c) => c.currentStage === stage).length;
   };
 
   if (loading) {

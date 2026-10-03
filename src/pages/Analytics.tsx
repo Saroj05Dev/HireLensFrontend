@@ -130,7 +130,7 @@ const Analytics: React.FC = () => {
     const orderedStages = STAGE_ORDER.filter((stage) => stage !== "REJECTED");
     return orderedStages
       .map((stageName) => {
-        const stage = candidatesByStage.find((s) => s.stage === stageName);
+        const stage = (candidatesByStage || []).find((s) => s.stage === stageName);
         return {
           name: stageName,
           count: stage?.count || 0,

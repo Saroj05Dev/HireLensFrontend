@@ -155,7 +155,7 @@ const PipelineBoard: React.FC<PipelineBoardProps> = () => {
   }, [dispatch, jobId]);
 
   const getCandidatesByStage = (stage: CandidateStage): Candidate[] => {
-    return candidates.filter((candidate) => candidate.currentStage === stage);
+    return (candidates || []).filter((candidate) => candidate.currentStage === stage);
   };
 
   const handleViewProfile = (candidate: Candidate): void => {
@@ -240,8 +240,8 @@ const PipelineBoard: React.FC<PipelineBoardProps> = () => {
     setDropError("");
   };
 
-  const totalCandidates = candidates.length;
-  const activeCandidates = candidates.filter(
+  const totalCandidates = (candidates || []).length;
+  const activeCandidates = (candidates || []).filter(
     (c) => !["HIRED", "REJECTED"].includes(c.currentStage)
   ).length;
 

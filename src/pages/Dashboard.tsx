@@ -144,8 +144,8 @@ const Dashboard: React.FC = () => {
   };
 
   const filteredActivity = activityFilter
-    ? recentActivity.filter((activity) => activity.actionType === activityFilter)
-    : recentActivity;
+    ? (recentActivity || []).filter((activity) => activity.actionType === activityFilter)
+    : (recentActivity || []);
 
   const totalCandidatesInStages = candidatesByStage.reduce((sum, stage) => sum + stage.count, 0);
   const conversionRate =

@@ -131,8 +131,8 @@ const ActivityPage: React.FC = () => {
   };
 
   const filteredActivity = activityFilter
-    ? activities.filter((activity) => activity.actionType === activityFilter)
-    : activities;
+    ? (activities || []).filter((activity) => activity.actionType === activityFilter)
+    : (activities || []);
 
   if (loading) {
     return (

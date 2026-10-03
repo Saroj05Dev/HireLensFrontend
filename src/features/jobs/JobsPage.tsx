@@ -20,7 +20,7 @@ const JobsPage: React.FC = () => {
   }, [dispatch]);
 
   const filteredJobs = useMemo<Job[]>(() => {
-    let filtered = [...list];
+    let filtered = [...(list || [])];
 
     if (statusFilter !== "ALL") {
       filtered = filtered.filter((job) => job.status === statusFilter);
@@ -40,8 +40,8 @@ const JobsPage: React.FC = () => {
   }, [list, statusFilter, searchQuery]);
 
   const stats = useMemo(() => {
-    const openJobs = list.filter((job) => job.status === "OPEN").length;
-    const closedJobs = list.filter((job) => job.status === "CLOSED").length;
+    const openJobs = (list || []).filter((job) => job.status === "OPEN").length;
+    const closedJobs = (list || []).filter((job) => job.status === "CLOSED").length;
     const totalCandidates = list.reduce(
       (sum, job) => sum + (job.candidateCount || 0),
       0
