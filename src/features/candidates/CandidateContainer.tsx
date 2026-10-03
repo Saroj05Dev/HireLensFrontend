@@ -38,16 +38,9 @@ const CandidateContainer: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log('CandidateContainer: Dispatching getAllCandidates with filters:', filters);
     dispatch(getAllCandidates(filters));
     dispatch(fetchJobs());
   }, [dispatch, filters]);
-
-  useEffect(() => {
-    console.log('CandidateContainer: candidates updated:', candidates);
-    console.log('CandidateContainer: loading:', loading);
-    console.log('CandidateContainer: error:', error);
-  }, [candidates, loading, error]);
 
   useEffect(() => {
     const handleCandidateStageUpdate = (data: { candidateId: string; toStage: CandidateStage }) => {
