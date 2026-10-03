@@ -1,22 +1,28 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { 
-  fetchNotifications, 
-  markAsRead, 
+import React, { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import {
+  fetchNotifications,
+  markAsRead,
   markAllAsRead,
   deleteNotification,
   selectNotifications,
   selectUnreadCount,
   selectNotificationsLoading,
-  notificationReceived
-} from '../../features/notifications/notificationSlice';
-import { onNotificationReceived, offSocketEvent } from '../../helpers/socket';
+  notificationReceived,
+} from "../../features/notifications/notificationSlice";
+import { onNotificationReceived, offSocketEvent } from "../../helpers/socket";
+import type { NotificationItem, NotificationType } from "../../types/notification.types";
 
-const NotificationDropdown = ({ isOpen, onClose }) => {
-  const dispatch = useDispatch();
-  const notifications = useSelector(selectNotifications);
-  const unreadCount = useSelector(selectUnreadCount);
-  const loading = useSelector(selectNotificationsLoading);
+interface NotificationDropdownProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose }) => {
+  const dispatch = useAppDispatch();
+  const notifications = useAppSelector(selectNotifications);
+  const unreadCount = useAppSelector(selectUnreadCount);
+  const loading = useAppSelector(selectNotificationsLoading);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,8 +32,8 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
 
   // Listen for real-time notifications
   useEffect(() => {
-    const handleNewNotification = (notification) => {
-      dispatch(notificationReceived(notification));
+    const handleNewNotification = (notification: any) => {
+      dispatch(notificationReceived(notification as NotificationItem));
     };
 
     onNotificationReceived(handleNewNotification);
@@ -37,23 +43,29 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     };
   }, [dispatch]);
 
-  const handleMarkAsRead = async (notificationId, e) => {
+  const handleMarkAsRead = async (
+    notificationId: string,
+    e: React.MouseEvent
+  ): Promise<void> => {
     e.stopPropagation();
     await dispatch(markAsRead(notificationId));
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = async (): Promise<void> => {
     await dispatch(markAllAsRead());
   };
 
-  const handleDelete = async (notificationId, e) => {
+  const handleDelete = async (
+    notificationId: string,
+    e: React.MouseEvent
+  ): Promise<void> => {
     e.stopPropagation();
     await dispatch(deleteNotification(notificationId));
   };
 
-  const getNotificationIcon = (type) => {
+  const getNotificationIcon = (type?: NotificationType): React.ReactNode => {
     switch (type) {
-      case 'INTERVIEW_ASSIGNED':
+      case "INTERVIEW_ASSIGNED":
         return (
           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +73,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             </svg>
           </div>
         );
-      case 'INTERVIEW_FEEDBACK_SUBMITTED':
+      case "INTERVIEW_FEEDBACK_SUBMITTED":
         return (
           <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +81,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             </svg>
           </div>
         );
-      case 'CANDIDATE_STAGE_CHANGED':
+      case "CANDIDATE_STAGE_CHANGED":
         return (
           <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +89,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             </svg>
           </div>
         );
-      case 'TEAM_INVITATION':
+      case "TEAM_INVITATION":
         return (
           <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +97,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             </svg>
           </div>
         );
-      case 'JOB_STATUS_CHANGED':
+      case "JOB_STATUS_CHANGED":
         return (
           <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +105,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             </svg>
           </div>
         );
-      case 'CANDIDATE_ADDED':
+      case "CANDIDATE_ADDED":
         return (
           <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,17 +124,17 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     }
   };
 
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 60) return "Just now";
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   if (!isOpen) return null;
@@ -130,11 +142,11 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Mobile Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40 md:hidden"
         onClick={onClose}
       />
-      
+
       <div className="fixed md:absolute top-0 md:top-full inset-x-0 md:inset-auto md:right-0 md:mt-2 w-full md:w-96 bg-white rounded-b-2xl md:rounded-lg shadow-xl border-b md:border border-gray-200 z-50 max-h-[90vh] md:max-h-[600px] flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-100">
@@ -149,14 +161,14 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
               {notifications.length > 0 && unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap"
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap cursor-pointer"
                 >
                   Mark all read
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="md:hidden text-gray-400 hover:text-gray-600 p-1"
+                className="md:hidden text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -187,16 +199,18 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                 <div
                   key={notification.id}
                   className={`p-3 md:p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                    !notification.isRead ? "bg-blue-50" : ""
                   }`}
                   onClick={(e) => !notification.isRead && handleMarkAsRead(notification.id, e)}
                 >
                   <div className="flex items-start gap-2 md:gap-3">
                     {getNotificationIcon(notification.type)}
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs md:text-sm font-medium text-gray-900 break-words">{notification.title}</p>
+                        <p className="text-xs md:text-sm font-medium text-gray-900 break-words">
+                          {notification.title}
+                        </p>
                         {!notification.isRead && (
                           <span className="w-2 h-2 bg-blue-600 rounded-full shrink-0 mt-1"></span>
                         )}
@@ -206,7 +220,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                         <span className="text-xs text-gray-400">{formatTime(notification.createdAt)}</span>
                         <button
                           onClick={(e) => handleDelete(notification.id, e)}
-                          className="text-xs text-red-600 hover:text-red-700 font-medium shrink-0"
+                          className="text-xs text-red-600 hover:text-red-700 font-medium shrink-0 cursor-pointer"
                         >
                           Delete
                         </button>
