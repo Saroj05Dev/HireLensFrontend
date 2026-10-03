@@ -1,5 +1,6 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../store/hooks";
 
 import Dashboard from "../pages/Dashboard";
 import Analytics from "../pages/Analytics";
@@ -18,8 +19,9 @@ import InterviewTasksPage from "../features/interviews/InterviewTasksPage";
 import InterviewsContainer from "../features/interviews/InterviewsContainer";
 import Loader from "../components/ui/Loader";
 
-const AppRoutes = () => {
-  const { isAuthenticated, loading, user } = useSelector((s) => s.auth);
+const AppRoutes: React.FC = () => {
+  const { isAuthenticated, loading, user } = useAppSelector((state) => state.auth);
+
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50">
@@ -34,8 +36,7 @@ const AppRoutes = () => {
     );
   }
 
-  // Determine default route based on role
-  const getDefaultRoute = () => {
+  const getDefaultRoute = (): string => {
     if (!isAuthenticated) return "/signup";
     return user?.role === "INTERVIEWER" ? "/interviews" : "/dashboard";
   };
@@ -61,7 +62,7 @@ const AppRoutes = () => {
           !isAuthenticated ? <ForgotPassword /> : <Navigate to={getDefaultRoute()} />
         }
       />
-      
+
       {/* Public invite acceptance route */}
       <Route path="/invite/:token" element={<AcceptInvitePage />} />
 
@@ -79,7 +80,7 @@ const AppRoutes = () => {
         }
       />
 
-      <Route 
+      <Route
         path="/jobs"
         element={
           <ProtectedRoute>
@@ -92,7 +93,7 @@ const AppRoutes = () => {
         }
       />
 
-      <Route 
+      <Route
         path="/jobs/:id"
         element={
           <ProtectedRoute>
@@ -105,7 +106,7 @@ const AppRoutes = () => {
         }
       />
 
-      <Route 
+      <Route
         path="/candidates"
         element={
           <ProtectedRoute>
@@ -119,7 +120,7 @@ const AppRoutes = () => {
       />
 
       {/* Interview routes - Role-based views */}
-      <Route 
+      <Route
         path="/interviews"
         element={
           <ProtectedRoute>
@@ -133,7 +134,7 @@ const AppRoutes = () => {
       />
 
       {/* Analytics route - ADMIN & RECRUITER only */}
-      <Route 
+      <Route
         path="/analytics"
         element={
           <ProtectedRoute>
@@ -147,7 +148,7 @@ const AppRoutes = () => {
       />
 
       {/* Activity route - All roles */}
-      <Route 
+      <Route
         path="/activity"
         element={
           <ProtectedRoute>
@@ -157,7 +158,7 @@ const AppRoutes = () => {
       />
 
       {/* Team Management route - ADMIN only */}
-      <Route 
+      <Route
         path="/team"
         element={
           <ProtectedRoute>
@@ -171,7 +172,7 @@ const AppRoutes = () => {
       />
 
       {/* Profile route - All roles */}
-      <Route 
+      <Route
         path="/profile"
         element={
           <ProtectedRoute>
@@ -183,9 +184,7 @@ const AppRoutes = () => {
       {/* Fallback */}
       <Route
         path="*"
-        element={
-          <Navigate to={getDefaultRoute()} replace />
-        }
+        element={<Navigate to={getDefaultRoute()} replace />}
       />
     </Routes>
   );

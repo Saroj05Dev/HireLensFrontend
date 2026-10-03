@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecentActivityApi } from "./dashboard.api";
+import { getRecentActivityApi, RecentActivityItem } from "./dashboard.api";
 import { onDecisionCreated, offSocketEvent } from "../helpers/socket";
 import Loader from "../components/ui/Loader";
 
@@ -12,32 +12,17 @@ const ACTIVITY_FILTERS = [
   { key: "CANDIDATE_ADDED", label: "New Candidates" },
 ];
 
-const ActivityPage = () => {
+const ActivityPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activities, setActivities] = useState([]);
-  const [activityFilter, setActivityFilter] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
+  const [activities, setActivities] = useState<RecentActivityItem[]>([]);
+  const [activityFilter, setActivityFilter] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 50;
 
-  useEffect(() => {
-    fetchActivities(1, true);
-    
-    // Set up real-time listener for new activities
-    const handleNewDecision = (data) => {
-      setActivities(prev => [data, ...prev]);
-    };
-    
-    onDecisionCreated(handleNewDecision);
-    
-    return () => {
-      offSocketEvent("decision:created");
-    };
-  }, []);
-
-  const fetchActivities = async (pageNum, reset = false) => {
+  const fetchActivities = async (pageNum: number, reset: boolean = false): Promise<void> => {
     if (reset) {
       setLoading(true);
     } else {
@@ -46,13 +31,13 @@ const ActivityPage = () => {
 
     try {
       const data = await getRecentActivityApi(ITEMS_PER_PAGE * pageNum);
-      
+
       if (reset) {
         setActivities(data);
       } else {
-        setActivities(prev => [...prev, ...data.slice(prev.length)]);
+        setActivities((prev) => [...prev, ...data.slice(prev.length)]);
       }
-      
+
       setHasMore(data.length === ITEMS_PER_PAGE * pageNum);
       setPage(pageNum);
     } catch (err) {
@@ -63,13 +48,27 @@ const ActivityPage = () => {
     }
   };
 
-  const loadMore = () => {
+  useEffect(() => {
+    fetchActivities(1, true);
+
+    const handleNewDecision = (data: RecentActivityItem) => {
+      setActivities((prev) => [data, ...prev]);
+    };
+
+    onDecisionCreated(handleNewDecision);
+
+    return () => {
+      offSocketEvent("decision:created");
+    };
+  }, []);
+
+  const loadMore = (): void => {
     if (!loadingMore && hasMore) {
       fetchActivities(page + 1);
     }
   };
 
-  const getActionIcon = (actionType) => {
+  const getActionIcon = (actionType: string): React.ReactNode => {
     switch (actionType) {
       case "STAGE_CHANGE":
         return (
@@ -104,7 +103,7 @@ const ActivityPage = () => {
     }
   };
 
-  const getActionColor = (actionType) => {
+  const getActionColor = (actionType: string): string => {
     switch (actionType) {
       case "STAGE_CHANGE":
         return "text-blue-600 bg-blue-50";
@@ -119,11 +118,11 @@ const ActivityPage = () => {
     }
   };
 
-  const formatTimeAgo = (dateString) => {
+  const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
-    
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
     if (seconds < 60) return "Just now";
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -131,8 +130,8 @@ const ActivityPage = () => {
     return date.toLocaleDateString();
   };
 
-  const filteredActivity = activityFilter 
-    ? activities.filter(activity => activity.actionType === activityFilter)
+  const filteredActivity = activityFilter
+    ? activities.filter((activity) => activity.actionType === activityFilter)
     : activities;
 
   if (loading) {
@@ -145,12 +144,11 @@ const ActivityPage = () => {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -163,23 +161,21 @@ const ActivityPage = () => {
         </div>
       </div>
 
-      {/* Activity Feed */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">All Activities</h2>
             <span className="text-sm text-gray-500">
-              {filteredActivity.length} {filteredActivity.length === 1 ? 'activity' : 'activities'}
+              {filteredActivity.length} {filteredActivity.length === 1 ? "activity" : "activities"}
             </span>
           </div>
 
-          {/* Activity Filters */}
           <div className="flex gap-2 flex-wrap">
             {ACTIVITY_FILTERS.map((filter) => (
               <button
                 key={filter.key}
                 onClick={() => setActivityFilter(filter.key)}
-                className={`px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                   activityFilter === filter.key
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -211,19 +207,18 @@ const ActivityPage = () => {
               {filteredActivity.map((activity, index) => (
                 <div key={activity.id || index} className="p-4 md:p-5 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start gap-3 md:gap-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getActionColor(activity.actionType)}`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${getActionColor(activity.actionType)}`}>
                       {getActionIcon(activity.actionType)}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <p className="text-sm md:text-base text-gray-900">
-                            <span className="font-medium">{activity.performedBy?.name || "Someone"}</span>
-                            {" "}
+                            <span className="font-medium">{activity.performedBy?.name || "Someone"}</span>{" "}
                             <span className="text-gray-600">{activity.note}</span>
                           </p>
-                          
+
                           {activity.candidate && (
                             <p className="text-xs md:text-sm text-gray-500 mt-1">
                               Candidate: {activity.candidate.name}
@@ -231,7 +226,7 @@ const ActivityPage = () => {
                             </p>
                           )}
                         </div>
-                        
+
                         <span className="text-xs text-gray-400 whitespace-nowrap">
                           {formatTimeAgo(activity.createdAt)}
                         </span>
@@ -241,13 +236,12 @@ const ActivityPage = () => {
                 </div>
               ))}
 
-              {/* Load More Button */}
               {hasMore && (
                 <div className="p-6 text-center border-t border-gray-200">
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                    className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto cursor-pointer"
                   >
                     {loadingMore ? (
                       <>

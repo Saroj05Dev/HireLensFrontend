@@ -1,29 +1,36 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { acceptInvite, fetchMe } from "../features/auth/authSlice";
 import { validateInviteTokenApi } from "../features/team/team.api";
 import AcceptInviteForm from "../features/team/AcceptInviteForm";
 import { Mail, Shield, AlertCircle } from "lucide-react";
 
-const AcceptInvitePage = () => {
-  const { token } = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { authLoading, authError } = useSelector((state) => state.auth);
+interface InviteTokenDetails {
+  organizationName: string;
+  role: string;
+  email: string;
+}
 
-  const [validating, setValidating] = useState(true);
-  const [inviteDetails, setInviteDetails] = useState(null);
-  const [validationError, setValidationError] = useState(null);
+const AcceptInvitePage: React.FC = () => {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { authLoading, authError } = useAppSelector((state) => state.auth);
+
+  const [validating, setValidating] = useState<boolean>(true);
+  const [inviteDetails, setInviteDetails] = useState<InviteTokenDetails | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     const validateToken = async () => {
+      if (!token) return;
       try {
         setValidating(true);
         setValidationError(null);
         const data = await validateInviteTokenApi(token);
         setInviteDetails(data);
-      } catch (error) {
+      } catch (error: any) {
         setValidationError(
           error.response?.data?.message || "Invalid or expired invitation"
         );
@@ -37,7 +44,9 @@ const AcceptInvitePage = () => {
     }
   }, [token]);
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (formData: { name: string; password?: string }): Promise<void> => {
+    if (!token) return;
+
     const res = await dispatch(
       acceptInvite({
         token,
@@ -47,13 +56,11 @@ const AcceptInvitePage = () => {
     );
 
     if (acceptInvite.fulfilled.match(res)) {
-      // Fetch user data after successful acceptance
       const userRes = await dispatch(fetchMe());
-      
+
       if (fetchMe.fulfilled.match(userRes)) {
         const userRole = userRes.payload.role;
-        
-        // Redirect based on role
+
         if (userRole === "INTERVIEWER") {
           navigate("/interviews");
         } else {
@@ -63,7 +70,6 @@ const AcceptInvitePage = () => {
     }
   };
 
-  // Loading state during validation
   if (validating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -83,7 +89,6 @@ const AcceptInvitePage = () => {
     );
   }
 
-  // Error state for invalid or expired token
   if (validationError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
@@ -107,13 +112,12 @@ const AcceptInvitePage = () => {
     );
   }
 
-  const getRoleBadgeColor = (role) => {
-    return role === "INTERVIEWER" 
-      ? "bg-purple-100 text-purple-700 border-purple-200" 
+  const getRoleBadgeColor = (role?: string): string => {
+    return role === "INTERVIEWER"
+      ? "bg-purple-100 text-purple-700 border-purple-200"
       : "bg-blue-100 text-blue-700 border-blue-200";
   };
 
-  // Main form view
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -132,41 +136,44 @@ const AcceptInvitePage = () => {
 
         {/* Content Section */}
         <div className="px-8 py-8">
-          {/* Organization Info */}
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
               {inviteDetails?.organizationName}
             </h2>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border ${getRoleBadgeColor(inviteDetails?.role)}">
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${getRoleBadgeColor(
+                inviteDetails?.role
+              )}`}
+            >
               <Shield className="h-4 w-4" />
               <span className="text-sm font-semibold">{inviteDetails?.role}</span>
             </div>
           </div>
 
-          {/* Email Display */}
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <Mail className="h-5 w-5 text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-600 font-medium mb-0.5">Invitation sent to</p>
-                <p className="text-sm font-semibold text-gray-900 truncate">{inviteDetails?.email}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {inviteDetails?.email}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Form */}
           <AcceptInviteForm
             onSubmit={handleSubmit}
             loading={authLoading}
             error={authError}
           />
 
-          {/* Footer Note */}
           <div className="mt-6 pt-6 border-t border-gray-100">
             <p className="text-xs text-gray-500 text-center leading-relaxed">
-              By accepting this invitation, you agree to join {inviteDetails?.organizationName} and gain access to their hiring platform.
+              By accepting this invitation, you agree to join {inviteDetails?.organizationName} and
+              gain access to their hiring platform.
             </p>
           </div>
         </div>

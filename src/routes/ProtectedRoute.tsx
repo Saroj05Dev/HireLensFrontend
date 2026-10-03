@@ -1,10 +1,15 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../store/hooks";
 import Layout from "../components/layouts/Layout";
 import Loader from "../components/ui/Loader";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useSelector((s) => s.auth);
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
 
   if (loading) {
     return (
@@ -14,7 +19,9 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <Layout>{children}</Layout>;
 };

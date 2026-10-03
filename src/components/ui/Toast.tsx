@@ -1,17 +1,28 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+export type ToastType = "error" | "success" | "info" | "warning";
+
+interface ToastPayload {
+  message: string;
+  type: ToastType;
+}
+
+interface ToastItemData extends ToastPayload {
+  id: number;
+}
+
 // Singleton toast manager
-let toastHandler = null;
+let toastHandler: ((payload: ToastPayload) => void) | null = null;
 
 export const toast = {
-  error: (message) => toastHandler?.({ message, type: "error" }),
-  success: (message) => toastHandler?.({ message, type: "success" }),
-  info: (message) => toastHandler?.({ message, type: "info" }),
-  warning: (message) => toastHandler?.({ message, type: "warning" }),
+  error: (message: string) => toastHandler?.({ message, type: "error" }),
+  success: (message: string) => toastHandler?.({ message, type: "success" }),
+  info: (message: string) => toastHandler?.({ message, type: "info" }),
+  warning: (message: string) => toastHandler?.({ message, type: "warning" }),
 };
 
-const ICONS = {
+const ICONS: Record<ToastType, React.ReactNode> = {
   error: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -34,37 +45,50 @@ const ICONS = {
   ),
 };
 
-const STYLES = {
+const STYLES: Record<ToastType, string> = {
   error: "bg-red-50 border-red-200 text-red-800 [&>div:first-child]:text-red-500",
   success: "bg-green-50 border-green-200 text-green-800 [&>div:first-child]:text-green-500",
   info: "bg-blue-50 border-blue-200 text-blue-800 [&>div:first-child]:text-blue-500",
   warning: "bg-amber-50 border-amber-200 text-amber-800 [&>div:first-child]:text-amber-500",
 };
 
-const ToastItem = ({ message, type, onRemove }) => {
-  const [visible, setVisible] = useState(false);
+interface ToastItemProps {
+  message: string;
+  type: ToastType;
+  onRemove: () => void;
+}
+
+const ToastItem: React.FC<ToastItemProps> = ({ message, type, onRemove }) => {
+  const [visible, setVisible] = useState<boolean>(false);
 
   useEffect(() => {
     // Trigger enter animation
-    requestAnimationFrame(() => setVisible(true));
+    const frameId = requestAnimationFrame(() => setVisible(true));
     const timer = setTimeout(() => {
       setVisible(false);
       setTimeout(onRemove, 300);
     }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(timer);
+    };
+  }, [onRemove]);
 
   return (
     <div
-      className={`flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg max-w-sm w-full transition-all duration-300 ${STYLES[type]} ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-      }`}
+      className={`flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg max-w-sm w-full transition-all duration-300 ${
+        STYLES[type]
+      } ${visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"}`}
     >
       <div className="shrink-0 mt-0.5">{ICONS[type]}</div>
       <p className="text-sm font-medium flex-1">{message}</p>
       <button
-        onClick={() => { setVisible(false); setTimeout(onRemove, 300); }}
-        className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+        onClick={() => {
+          setVisible(false);
+          setTimeout(onRemove, 300);
+        }}
+        className="shrink-0 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -74,18 +98,22 @@ const ToastItem = ({ message, type, onRemove }) => {
   );
 };
 
-export const ToastProvider = () => {
-  const [toasts, setToasts] = useState([]);
+export const ToastProvider: React.FC = () => {
+  const [toasts, setToasts] = useState<ToastItemData[]>([]);
 
   useEffect(() => {
-    toastHandler = ({ message, type }) => {
+    toastHandler = ({ message, type }: ToastPayload) => {
       const id = Date.now();
       setToasts((prev) => [...prev, { id, message, type }]);
     };
-    return () => { toastHandler = null; };
+    return () => {
+      toastHandler = null;
+    };
   }, []);
 
-  const remove = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const remove = (id: number): void => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   return createPortal(
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">

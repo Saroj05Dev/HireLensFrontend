@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDashboardStatsApi, getRecentActivityApi, getCandidatesByStageApi } from "./dashboard.api";
+import { useAppSelector } from "../store/hooks";
+import {
+  getDashboardStatsApi,
+  getRecentActivityApi,
+  getCandidatesByStageApi,
+  DashboardStats,
+  RecentActivityItem,
+  CandidateStageDistribution,
+} from "./dashboard.api";
 import { onDecisionCreated, offSocketEvent } from "../helpers/socket";
 import Loader from "../components/ui/Loader";
 
@@ -13,7 +20,7 @@ const ACTIVITY_FILTERS = [
   { key: "CANDIDATE_ADDED", label: "New Candidates" },
 ];
 
-const STAGE_COLORS = {
+const STAGE_COLORS: Record<string, string> = {
   APPLIED: "#3B82F6",
   SCREENING: "#8B5CF6",
   INTERVIEW: "#F59E0B",
@@ -22,11 +29,11 @@ const STAGE_COLORS = {
   REJECTED: "#EF4444",
 };
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
-  
-  const [stats, setStats] = useState({
+  const { user } = useAppSelector((state) => state.auth);
+
+  const [stats, setStats] = useState<DashboardStats>({
     openJobs: 0,
     activeCandidates: 0,
     pendingInterviews: 0,
@@ -34,49 +41,48 @@ const Dashboard = () => {
     totalCandidates: 0,
     totalInterviews: 0,
   });
-  
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [candidatesByStage, setCandidatesByStage] = useState([]);
-  const [activityFilter, setActivityFilter] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchDashboardData();
-    
-    // Set up real-time listener for new activities
-    const handleNewDecision = (data) => {
-      setRecentActivity(prev => [data, ...prev].slice(0, 20));
-    };
-    
-    onDecisionCreated(handleNewDecision);
-    
-    return () => {
-      offSocketEvent("decision:created");
-    };
-  }, []);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
+  const [candidatesByStage, setCandidatesByStage] = useState<CandidateStageDistribution[]>([]);
+  const [activityFilter, setActivityFilter] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (): Promise<void> => {
     setLoading(true);
     try {
       const [statsData, activityData, stageData] = await Promise.all([
         getDashboardStatsApi(),
         getRecentActivityApi(20),
-        getCandidatesByStageApi()
+        getCandidatesByStageApi(),
       ]);
-      
+
       setStats(statsData);
       setRecentActivity(activityData);
       setCandidatesByStage(stageData);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
-  const getActionIcon = (actionType) => {
+  useEffect(() => {
+    fetchDashboardData();
+
+    const handleNewDecision = (data: RecentActivityItem) => {
+      setRecentActivity((prev) => [data, ...prev].slice(0, 20));
+    };
+
+    onDecisionCreated(handleNewDecision);
+
+    return () => {
+      offSocketEvent("decision:created");
+    };
+  }, []);
+
+  const getActionIcon = (actionType: string): React.ReactNode => {
     switch (actionType) {
       case "STAGE_CHANGE":
         return (
@@ -111,7 +117,7 @@ const Dashboard = () => {
     }
   };
 
-  const getActionColor = (actionType) => {
+  const getActionColor = (actionType: string): string => {
     switch (actionType) {
       case "STAGE_CHANGE":
         return "text-blue-600 bg-blue-50";
@@ -126,29 +132,37 @@ const Dashboard = () => {
     }
   };
 
-  const formatTimeAgo = (dateString) => {
+  const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
-    
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
     if (seconds < 60) return "Just now";
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
-  const filteredActivity = activityFilter 
-    ? recentActivity.filter(activity => activity.actionType === activityFilter)
+  const filteredActivity = activityFilter
+    ? recentActivity.filter((activity) => activity.actionType === activityFilter)
     : recentActivity;
 
-  // Calculate metrics
   const totalCandidatesInStages = candidatesByStage.reduce((sum, stage) => sum + stage.count, 0);
-  const conversionRate = stats.totalCandidates > 0 
-    ? ((candidatesByStage.find(s => s.stage === "HIRED")?.count || 0) / stats.totalCandidates * 100).toFixed(1)
-    : 0;
-  const interviewCompletionRate = stats.totalInterviews > 0
-    ? (((stats.totalInterviews - stats.pendingInterviews) / stats.totalInterviews) * 100).toFixed(1)
-    : 0;
+  const conversionRate =
+    stats.totalCandidates > 0
+      ? (
+          ((candidatesByStage.find((s) => s.stage === "HIRED")?.count || 0) /
+            stats.totalCandidates) *
+          100
+        ).toFixed(1)
+      : "0";
+  const interviewCompletionRate =
+    stats.totalInterviews > 0
+      ? (
+          ((stats.totalInterviews - stats.pendingInterviews) / stats.totalInterviews) *
+          100
+        ).toFixed(1)
+      : "0";
 
   if (loading) {
     return (
@@ -160,7 +174,6 @@ const Dashboard = () => {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           Welcome back, {user?.name}!
@@ -171,17 +184,15 @@ const Dashboard = () => {
         <p className="text-gray-600 mt-1">Here's what's happening with your hiring pipeline</p>
       </div>
 
-      {/* Error State */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
 
-      {/* Primary Stats Cards */}
+      {/* Primary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Open Jobs */}
-        <div 
+        <div
           onClick={() => navigate("/jobs")}
           className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
         >
@@ -200,8 +211,7 @@ const Dashboard = () => {
           <p className="text-xs text-gray-500 mt-2">Active job postings</p>
         </div>
 
-        {/* Active Candidates */}
-        <div 
+        <div
           onClick={() => navigate("/candidates")}
           className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
         >
@@ -220,8 +230,7 @@ const Dashboard = () => {
           <p className="text-xs text-gray-500 mt-2">In hiring pipeline</p>
         </div>
 
-        {/* Pending Interviews */}
-        <div 
+        <div
           onClick={() => navigate("/interviews")}
           className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
         >
@@ -277,9 +286,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Charts Section */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Pipeline Funnel Chart */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Hiring Pipeline</h2>
           <div className="space-y-3">
@@ -287,22 +295,25 @@ const Dashboard = () => {
               <p className="text-gray-500 text-sm text-center py-8">No candidates in pipeline yet</p>
             ) : (
               candidatesByStage.map((stage) => {
-                const percentage = totalCandidatesInStages > 0 
-                  ? (stage.count / totalCandidatesInStages * 100).toFixed(1)
-                  : 0;
-                
+                const percentage =
+                  totalCandidatesInStages > 0
+                    ? ((stage.count / totalCandidatesInStages) * 100).toFixed(1)
+                    : "0";
+
                 return (
                   <div key={stage.stage}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-gray-700">{stage.stage}</span>
-                      <span className="text-sm text-gray-600">{stage.count} ({percentage}%)</span>
+                      <span className="text-sm text-gray-600">
+                        {stage.count} ({percentage}%)
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="h-2 rounded-full transition-all duration-500"
-                        style={{ 
+                        style={{
                           width: `${percentage}%`,
-                          backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280"
+                          backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280",
                         }}
                       ></div>
                     </div>
@@ -313,7 +324,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stage Distribution Pie Chart (Visual representation) */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Stage Distribution</h2>
           <div className="space-y-2">
@@ -323,12 +333,12 @@ const Dashboard = () => {
               <>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {candidatesByStage.map((stage) => (
-                    <div 
+                    <div
                       key={stage.stage}
                       className="flex items-center gap-2 p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
                     >
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0"
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280" }}
                       ></div>
                       <div className="flex-1 min-w-0">
@@ -338,7 +348,7 @@ const Dashboard = () => {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-700">Total Candidates</span>
@@ -351,7 +361,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recent Activity Feed with Filters */}
+      {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
@@ -361,13 +371,12 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Activity Filters */}
           <div className="flex gap-2 flex-wrap">
             {ACTIVITY_FILTERS.map((filter) => (
               <button
                 key={filter.key}
                 onClick={() => setActivityFilter(filter.key)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                   activityFilter === filter.key
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -398,19 +407,18 @@ const Dashboard = () => {
             filteredActivity.map((activity, index) => (
               <div key={activity.id || index} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getActionColor(activity.actionType)}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${getActionColor(activity.actionType)}`}>
                     {getActionIcon(activity.actionType)}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <p className="text-sm text-gray-900">
-                          <span className="font-medium">{activity.performedBy?.name || "Someone"}</span>
-                          {" "}
+                          <span className="font-medium">{activity.performedBy?.name || "Someone"}</span>{" "}
                           <span className="text-gray-600">{activity.note}</span>
                         </p>
-                        
+
                         {activity.candidate && (
                           <p className="text-xs text-gray-500 mt-1">
                             Candidate: {activity.candidate.name}
@@ -418,7 +426,7 @@ const Dashboard = () => {
                           </p>
                         )}
                       </div>
-                      
+
                       <span className="text-xs text-gray-400 whitespace-nowrap">
                         {formatTimeAgo(activity.createdAt)}
                       </span>
@@ -432,9 +440,9 @@ const Dashboard = () => {
 
         {filteredActivity.length > 0 && (
           <div className="p-4 border-t border-gray-200 text-center">
-            <button 
+            <button
               onClick={() => navigate("/activity")}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
             >
               View all activity →
             </button>

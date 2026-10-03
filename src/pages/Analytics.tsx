@@ -1,17 +1,23 @@
-import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { 
-  getJobFunnelApi, 
+import React, { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  getJobFunnelApi,
   getTimeToHireApi,
-  getOrganizationTimeToHireApi
+  getOrganizationTimeToHireApi,
+  JobFunnelData,
+  TimeToHireData,
+  OrganizationTimeToHireData,
 } from "./analytics.api";
-import { getCandidatesByStageApi } from "./dashboard.api";
+import {
+  getCandidatesByStageApi,
+  CandidateStageDistribution,
+} from "./dashboard.api";
 import { fetchJobs } from "../features/jobs/jobsSlice";
 import Loader from "../components/ui/Loader";
 
 const STAGE_ORDER = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED", "REJECTED"];
 
-const STAGE_COLORS = {
+const STAGE_COLORS: Record<string, string> = {
   APPLIED: "#3B82F6",
   SCREENING: "#8B5CF6",
   INTERVIEW: "#F59E0B",
@@ -20,17 +26,55 @@ const STAGE_COLORS = {
   REJECTED: "#EF4444",
 };
 
-const Analytics = () => {
-  const dispatch = useDispatch();
-  const { list: jobs } = useSelector((state) => state.jobs);
-  
-  const [candidatesByStage, setCandidatesByStage] = useState([]);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [jobFunnel, setJobFunnel] = useState(null);
-  const [jobTimeToHire, setJobTimeToHire] = useState(null);
-  const [orgTimeToHire, setOrgTimeToHire] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface DropOffItem {
+  from: string;
+  to: string;
+  dropOffRate: number;
+  lost: number;
+}
+
+const Analytics: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { list: jobs } = useAppSelector((state) => state.jobs);
+
+  const [candidatesByStage, setCandidatesByStage] = useState<CandidateStageDistribution[]>([]);
+  const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [jobFunnel, setJobFunnel] = useState<JobFunnelData | null>(null);
+  const [jobTimeToHire, setJobTimeToHire] = useState<TimeToHireData | null>(null);
+  const [orgTimeToHire, setOrgTimeToHire] = useState<OrganizationTimeToHireData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAnalytics = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const [stageData, timeData] = await Promise.all([
+        getCandidatesByStageApi(),
+        getOrganizationTimeToHireApi(),
+      ]);
+      setCandidatesByStage(stageData);
+      setOrgTimeToHire(timeData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to load analytics");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchJobAnalytics = async (jobId: string): Promise<void> => {
+    try {
+      const [funnelData, timeData] = await Promise.all([
+        getJobFunnelApi(jobId),
+        getTimeToHireApi(jobId),
+      ]);
+
+      setJobFunnel(funnelData);
+      setJobTimeToHire(timeData);
+    } catch (err) {
+      console.error("Failed to fetch job analytics:", err);
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchJobs());
@@ -43,93 +87,61 @@ const Analytics = () => {
     }
   }, [selectedJob]);
 
-  const fetchAnalytics = async () => {
-    setLoading(true);
-    try {
-      const [stageData, timeData] = await Promise.all([
-        getCandidatesByStageApi(),
-        getOrganizationTimeToHireApi()
-      ]);
-      setCandidatesByStage(stageData);
-      setOrgTimeToHire(timeData);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load analytics");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchJobAnalytics = async (jobId) => {
-    try {
-      const [funnelData, timeData] = await Promise.all([
-        getJobFunnelApi(jobId),
-        getTimeToHireApi(jobId)
-      ]);
-      
-      setJobFunnel(funnelData);
-      setJobTimeToHire(timeData);
-    } catch (err) {
-      console.error("Failed to fetch job analytics:", err);
-    }
-  };
-
-  // Calculate metrics
   const totalCandidates = candidatesByStage.reduce((sum, stage) => sum + stage.count, 0);
-  const hiredCount = candidatesByStage.find(s => s.stage === "HIRED")?.count || 0;
-  const rejectedCount = candidatesByStage.find(s => s.stage === "REJECTED")?.count || 0;
+  const hiredCount = candidatesByStage.find((s) => s.stage === "HIRED")?.count || 0;
+  const rejectedCount = candidatesByStage.find((s) => s.stage === "REJECTED")?.count || 0;
   const activeCount = totalCandidates - hiredCount - rejectedCount;
-  
-  const conversionRate = totalCandidates > 0 ? ((hiredCount / totalCandidates) * 100).toFixed(1) : 0;
-  const rejectionRate = totalCandidates > 0 ? ((rejectedCount / totalCandidates) * 100).toFixed(1) : 0;
 
-  // Calculate drop-off rates between stages
-  const calculateDropOff = () => {
-    const stageMap = {};
-    candidatesByStage.forEach(stage => {
+  const conversionRate = totalCandidates > 0 ? ((hiredCount / totalCandidates) * 100).toFixed(1) : "0";
+  const rejectionRate = totalCandidates > 0 ? ((rejectedCount / totalCandidates) * 100).toFixed(1) : "0";
+
+  const calculateDropOff = (): DropOffItem[] => {
+    const stageMap: Record<string, number> = {};
+    candidatesByStage.forEach((stage) => {
       stageMap[stage.stage] = stage.count;
     });
 
-    const dropOffs = [];
+    const dropOffs: DropOffItem[] = [];
     for (let i = 0; i < STAGE_ORDER.length - 2; i++) {
       const currentStage = STAGE_ORDER[i];
       const nextStage = STAGE_ORDER[i + 1];
-      
+
       const currentCount = stageMap[currentStage] || 0;
       const nextCount = stageMap[nextStage] || 0;
-      
+
       if (currentCount > 0) {
-        const dropOffRate = ((currentCount - nextCount) / currentCount * 100).toFixed(1);
+        const dropOffRate = (((currentCount - nextCount) / currentCount) * 100).toFixed(1);
         dropOffs.push({
           from: currentStage,
           to: nextStage,
           dropOffRate: parseFloat(dropOffRate),
-          lost: currentCount - nextCount
+          lost: currentCount - nextCount,
         });
       }
     }
-    
+
     return dropOffs.sort((a, b) => b.dropOffRate - a.dropOffRate);
   };
 
   const dropOffAnalysis = calculateDropOff();
   const highestDropOff = dropOffAnalysis[0];
 
-  // Funnel visualization data
   const getFunnelData = () => {
-    const orderedStages = STAGE_ORDER.filter(stage => stage !== "REJECTED");
-    return orderedStages.map(stageName => {
-      const stage = candidatesByStage.find(s => s.stage === stageName);
-      return {
-        name: stageName,
-        count: stage?.count || 0,
-        color: STAGE_COLORS[stageName]
-      };
-    }).filter(stage => stage.count > 0);
+    const orderedStages = STAGE_ORDER.filter((stage) => stage !== "REJECTED");
+    return orderedStages
+      .map((stageName) => {
+        const stage = candidatesByStage.find((s) => s.stage === stageName);
+        return {
+          name: stageName,
+          count: stage?.count || 0,
+          color: STAGE_COLORS[stageName] || "#6B7280",
+        };
+      })
+      .filter((stage) => stage.count > 0);
   };
 
   const funnelData = getFunnelData();
-  const maxCount = Math.max(...funnelData.map(s => s.count), 1);
+  const maxCount = Math.max(...funnelData.map((s) => s.count), 1);
 
   if (loading) {
     return (
@@ -141,13 +153,11 @@ const Analytics = () => {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
         <p className="text-gray-600 mt-1">Comprehensive insights into your hiring pipeline</p>
       </div>
 
-      {/* Error State */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
           {error}
@@ -206,7 +216,7 @@ const Analytics = () => {
       {/* Hiring Funnel Chart */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Hiring Funnel</h2>
-        
+
         {funnelData.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">No funnel data available</p>
@@ -215,10 +225,11 @@ const Analytics = () => {
           <div className="space-y-4">
             {funnelData.map((stage, index) => {
               const widthPercentage = (stage.count / maxCount) * 100;
-              const conversionFromPrevious = index > 0 
-                ? ((stage.count / funnelData[index - 1].count) * 100).toFixed(1)
-                : 100;
-              
+              const conversionFromPrevious =
+                index > 0
+                  ? ((stage.count / funnelData[index - 1].count) * 100).toFixed(1)
+                  : "100";
+
               return (
                 <div key={stage.name} className="relative">
                   <div className="flex items-center gap-4 mb-2">
@@ -226,12 +237,12 @@ const Analytics = () => {
                       <span className="text-sm font-medium text-gray-700">{stage.name}</span>
                     </div>
                     <div className="flex items-center gap-3 flex-1">
-                      <div 
+                      <div
                         className="h-12 rounded-lg transition-all duration-500 flex items-center px-4"
-                        style={{ 
+                        style={{
                           width: `${widthPercentage}%`,
                           backgroundColor: stage.color,
-                          minWidth: '60px'
+                          minWidth: "60px",
                         }}
                       >
                         <span className="text-white font-bold text-sm">{stage.count}</span>
@@ -243,7 +254,7 @@ const Analytics = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   {index < funnelData.length - 1 && (
                     <div className="ml-32 pl-4">
                       <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,22 +269,20 @@ const Analytics = () => {
         )}
       </div>
 
-      {/* Drop-off Analysis */}
+      {/* Drop-off & Stage Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Drop-off Analysis</h2>
-          
+
           {dropOffAnalysis.length === 0 ? (
             <p className="text-gray-500 text-sm">No drop-off data available</p>
           ) : (
             <div className="space-y-3">
               {dropOffAnalysis.map((dropOff, index) => (
-                <div 
+                <div
                   key={`${dropOff.from}-${dropOff.to}`}
                   className={`p-4 rounded-lg border-2 ${
-                    index === 0 
-                      ? 'border-red-200 bg-red-50' 
-                      : 'border-gray-200 bg-gray-50'
+                    index === 0 ? "border-red-200 bg-red-50" : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -292,7 +301,7 @@ const Analytics = () => {
                     </span>
                   </div>
                   <p className="text-xs text-gray-600">
-                    {dropOff.lost} candidate{dropOff.lost !== 1 ? 's' : ''} lost at this stage
+                    {dropOff.lost} candidate{dropOff.lost !== 1 ? "s" : ""} lost at this stage
                   </p>
                 </div>
               ))}
@@ -308,30 +317,28 @@ const Analytics = () => {
                 Insight
               </h3>
               <p className="text-sm text-blue-800">
-                Focus on improving the {highestDropOff.from} to {highestDropOff.to} transition. 
-                This is where you're losing the most candidates ({highestDropOff.dropOffRate}% drop-off).
+                Focus on improving the {highestDropOff.from} to {highestDropOff.to} transition. This
+                is where you're losing the most candidates ({highestDropOff.dropOffRate}% drop-off).
               </p>
             </div>
           )}
         </div>
 
-        {/* Stage Distribution */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Stage Distribution</h2>
-          
+
           <div className="space-y-3">
             {candidatesByStage.map((stage) => {
-              const percentage = totalCandidates > 0 
-                ? ((stage.count / totalCandidates) * 100).toFixed(1)
-                : 0;
-              
+              const percentage =
+                totalCandidates > 0 ? ((stage.count / totalCandidates) * 100).toFixed(1) : "0";
+
               return (
                 <div key={stage.stage}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: STAGE_COLORS[stage.stage] }}
+                        style={{ backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280" }}
                       ></div>
                       <span className="text-sm font-medium text-gray-700">{stage.stage}</span>
                     </div>
@@ -340,11 +347,11 @@ const Analytics = () => {
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="h-2 rounded-full transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${percentage}%`,
-                        backgroundColor: STAGE_COLORS[stage.stage]
+                        backgroundColor: STAGE_COLORS[stage.stage] || "#6B7280",
                       }}
                     ></div>
                   </div>
@@ -363,7 +370,7 @@ const Analytics = () => {
             <select
               value={selectedJob || ""}
               onChange={(e) => setSelectedJob(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 md:px-4 py-2 pr-10 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+              className="w-full border border-gray-300 rounded-lg px-3 md:px-4 py-2 pr-10 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer"
             >
               <option value="">Select a job</option>
               {jobs.map((job) => (
@@ -390,7 +397,6 @@ const Analytics = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Job Funnel */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-4">Candidate Funnel</h3>
               {jobFunnel && Object.keys(jobFunnel.funnel).length > 0 ? (
@@ -407,7 +413,6 @@ const Analytics = () => {
               )}
             </div>
 
-            {/* Time to Hire */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-4">Time to Hire</h3>
               {jobTimeToHire && jobTimeToHire.hires.length > 0 ? (
@@ -419,7 +424,7 @@ const Analytics = () => {
                       <span className="text-lg ml-2">days</span>
                     </p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase">Individual Hires</p>
                     {jobTimeToHire.hires.map((hire, index) => (

@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   fetchMembers,
   fetchPendingInvites,
@@ -17,25 +17,23 @@ import Loader from "../components/ui/Loader";
 import MembersList from "../features/team/MembersList";
 import PendingInvitesList from "../features/team/PendingInvitesList";
 
-const TeamPage = () => {
-  const dispatch = useDispatch();
+const TeamPage: React.FC = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
 
-  const members = useSelector(selectMembers);
-  const pendingInvites = useSelector(selectPendingInvites);
-  const loading = useSelector(selectTeamLoading);
-  const error = useSelector(selectTeamError);
-  const inviteModalOpen = useSelector(selectInviteModalOpen);
+  const members = useAppSelector(selectMembers);
+  const pendingInvites = useAppSelector(selectPendingInvites);
+  const loading = useAppSelector(selectTeamLoading);
+  const error = useAppSelector(selectTeamError);
+  const inviteModalOpen = useAppSelector(selectInviteModalOpen);
 
-  // Admin-only access check
   useEffect(() => {
     if (user && user.role !== "ADMIN") {
       navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
-  // Fetch data on mount
   useEffect(() => {
     if (user?.role === "ADMIN") {
       dispatch(fetchMembers());
@@ -43,15 +41,14 @@ const TeamPage = () => {
     }
   }, [dispatch, user]);
 
-  const handleOpenInviteModal = () => {
+  const handleOpenInviteModal = (): void => {
     dispatch(setInviteModalOpen(true));
   };
 
-  const handleCloseError = () => {
+  const handleCloseError = (): void => {
     dispatch(clearError());
   };
 
-  // Loading state
   if (loading && members.length === 0 && pendingInvites.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -62,7 +59,6 @@ const TeamPage = () => {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-0">
           <div>
@@ -73,7 +69,7 @@ const TeamPage = () => {
           </div>
           <button
             onClick={handleOpenInviteModal}
-            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm md:text-base"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm md:text-base cursor-pointer"
           >
             <svg
               className="w-4 h-4 md:w-5 md:h-5"
@@ -93,13 +89,12 @@ const TeamPage = () => {
         </div>
       </div>
 
-      {/* Error State */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 md:px-4 py-2 md:py-3 rounded-lg mb-4 md:mb-6 flex items-center justify-between text-sm md:text-base">
           <span>{error}</span>
           <button
             onClick={handleCloseError}
-            className="text-red-700 hover:text-red-900 shrink-0 ml-2"
+            className="text-red-700 hover:text-red-900 shrink-0 ml-2 cursor-pointer"
           >
             <svg
               className="w-4 h-4 md:w-5 md:h-5"
@@ -118,17 +113,14 @@ const TeamPage = () => {
         </div>
       )}
 
-      {/* Active Members Section */}
       <div className="mb-4 md:mb-6">
         <MembersList />
       </div>
 
-      {/* Pending Invitations Section */}
       <div className="mb-4 md:mb-6">
         <PendingInvitesList />
       </div>
 
-      {/* Invite User Modal */}
       {inviteModalOpen && <InviteUserModal />}
     </div>
   );
