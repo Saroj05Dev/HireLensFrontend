@@ -1,34 +1,31 @@
-import { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState, useMemo } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchJobs, clearJobsCache } from "./jobsSlice";
 import JobList from "./JobList";
 import CreateJob from "./CreateJob";
+import type { Job } from "../../types/job.types";
 
-const JobsPage = () => {
-  const dispatch = useDispatch();
-  const { list, loading, error } = useSelector((state) => state.jobs);
-  const { user } = useSelector((state) => state.auth);
-  const [showCreate, setShowCreate] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+const JobsPage: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { list, loading, error } = useAppSelector((state) => state.jobs);
+  const { user } = useAppSelector((state) => state.auth);
+  const [showCreate, setShowCreate] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
-    // Clear cache and force refresh jobs data to get updated candidate counts
     dispatch(clearJobsCache());
     dispatch(fetchJobs());
   }, [dispatch]);
 
-  // Filter and search jobs
-  const filteredJobs = useMemo(() => {
+  const filteredJobs = useMemo<Job[]>(() => {
     let filtered = [...list];
 
-    // Status filter
     if (statusFilter !== "ALL") {
       filtered = filtered.filter((job) => job.status === statusFilter);
     }
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -42,11 +39,13 @@ const JobsPage = () => {
     return filtered;
   }, [list, statusFilter, searchQuery]);
 
-  // Calculate stats
   const stats = useMemo(() => {
     const openJobs = list.filter((job) => job.status === "OPEN").length;
     const closedJobs = list.filter((job) => job.status === "CLOSED").length;
-    const totalCandidates = list.reduce((sum, job) => sum + (job.candidateCount || 0), 0);
+    const totalCandidates = list.reduce(
+      (sum, job) => sum + (job.candidateCount || 0),
+      0
+    );
 
     return { openJobs, closedJobs, totalCandidates, totalJobs: list.length };
   }, [list]);
@@ -66,7 +65,7 @@ const JobsPage = () => {
           {canCreateJob && (
             <button
               onClick={() => setShowCreate(true)}
-              className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm text-sm md:text-base w-full sm:w-auto justify-center"
+              className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm text-sm md:text-base w-full sm:w-auto justify-center cursor-pointer"
             >
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -167,7 +166,7 @@ const JobsPage = () => {
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
-                      className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
+                      className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                         statusFilter === status
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -179,11 +178,11 @@ const JobsPage = () => {
                 </div>
               </div>
 
-              {/* View Mode Toggle - Hidden on mobile */}
+              {/* View Mode Toggle */}
               <div className="hidden md:flex items-center gap-2 border-l pl-4">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded ${
+                  className={`p-2 rounded cursor-pointer ${
                     viewMode === "grid" ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:text-gray-600"
                   }`}
                   title="Grid view"
@@ -194,7 +193,7 @@ const JobsPage = () => {
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-2 rounded ${
+                  className={`p-2 rounded cursor-pointer ${
                     viewMode === "list" ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:text-gray-600"
                   }`}
                   title="List view"
@@ -214,7 +213,7 @@ const JobsPage = () => {
               {searchQuery && (
                 <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
                   Search: "{searchQuery}"
-                  <button onClick={() => setSearchQuery("")} className="hover:text-blue-900">
+                  <button onClick={() => setSearchQuery("")} className="hover:text-blue-900 cursor-pointer">
                     <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -224,7 +223,7 @@ const JobsPage = () => {
               {statusFilter !== "ALL" && (
                 <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
                   Status: {statusFilter}
-                  <button onClick={() => setStatusFilter("ALL")} className="hover:text-green-900">
+                  <button onClick={() => setStatusFilter("ALL")} className="hover:text-green-900 cursor-pointer">
                     <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -236,7 +235,7 @@ const JobsPage = () => {
                   setSearchQuery("");
                   setStatusFilter("ALL");
                 }}
-                className="text-xs md:text-sm text-gray-600 hover:text-gray-900 underline"
+                className="text-xs md:text-sm text-gray-600 hover:text-gray-900 underline cursor-pointer"
               >
                 Clear all
               </button>

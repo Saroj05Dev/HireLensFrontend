@@ -1,15 +1,31 @@
-import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import React, { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useAppDispatch } from "../../store/hooks";
 import { createJob } from "./jobsSlice";
-import { useState } from "react";
 
-const CreateJob = ({ onClose }) => {
-  const dispatch = useDispatch();
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+interface CreateJobProps {
+  onClose: () => void;
+}
 
-  const onSubmit = async (data) => {
+interface CreateJobFormInputs {
+  title: string;
+  description?: string;
+  experience?: string;
+  location?: string;
+  skills: string;
+}
+
+const CreateJob: React.FC<CreateJobProps> = ({ onClose }) => {
+  const dispatch = useAppDispatch();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CreateJobFormInputs>();
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit: SubmitHandler<CreateJobFormInputs> = async (data) => {
     setIsSubmitting(true);
     setError(null);
 
@@ -20,14 +36,16 @@ const CreateJob = ({ onClose }) => {
         experience: data.experience,
         location: data.location,
         skills: data.skills
-          .split(",")
-          .map((skill) => skill.trim())
-          .filter(Boolean),
+          ? data.skills
+              .split(",")
+              .map((skill) => skill.trim())
+              .filter(Boolean)
+          : [],
       };
 
       await dispatch(createJob(payload)).unwrap();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       setError(err || "Failed to create job");
     } finally {
       setIsSubmitting(false);
@@ -52,7 +70,7 @@ const CreateJob = ({ onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors"
+            className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -127,7 +145,7 @@ const CreateJob = ({ onClose }) => {
               <div className="relative">
                 <select
                   {...register("experience")}
-                  className="w-full border-2 border-gray-300 px-3 md:px-4 py-2 md:py-2.5 pr-10 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                  className="w-full border-2 border-gray-300 px-3 md:px-4 py-2 md:py-2.5 pr-10 rounded-lg text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
                 >
                   <option value="">Select experience level</option>
                   <option value="0-1 years">0–1 years (Entry Level)</option>
@@ -156,7 +174,6 @@ const CreateJob = ({ onClose }) => {
               />
             </div>
           </div>
-
         </form>
 
         {/* Footer */}
@@ -165,7 +182,7 @@ const CreateJob = ({ onClose }) => {
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Cancel
           </button>
@@ -173,7 +190,7 @@ const CreateJob = ({ onClose }) => {
           <button
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base"
+            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base cursor-pointer"
           >
             {isSubmitting ? (
               <>

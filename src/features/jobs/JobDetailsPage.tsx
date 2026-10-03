@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchJobs, closeJob, reopenJob, deleteJob } from "./jobsSlice";
 import PipelineBoard from "./PipelineBoard";
 import EditJob from "./EditJob";
 import { toast } from "../../components/ui/Toast";
 import Loader from "../../components/ui/Loader";
 
-const JobDetailsPage = () => {
-  const { id } = useParams();
-  const dispatch = useDispatch();
+const JobDetailsPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { list: jobs, loading } = useSelector((state) => state.jobs);
-  const { user } = useSelector((state) => state.auth);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { list: jobs, loading } = useAppSelector((state) => state.jobs);
+  const { user } = useAppSelector((state) => state.auth);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState<boolean>(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
   useEffect(() => {
     if (!jobs.length) {
@@ -26,16 +26,16 @@ const JobDetailsPage = () => {
     }
   }, [dispatch, jobs.length]);
 
-  // Try to find job by id field (backend returns id, not _id)
-  const job = jobs.find((job) => job.id === id);
+  const job = jobs.find((j) => j.id === id);
 
-  const handleToggleJobStatus = async () => {
+  const handleToggleJobStatus = (): void => {
     setShowCloseConfirm(true);
   };
 
-  const confirmToggleStatus = async () => {
+  const confirmToggleStatus = async (): Promise<void> => {
+    if (!job) return;
     const action = job.status === "OPEN" ? "close" : "reopen";
-    
+
     setIsUpdating(true);
     setShowCloseConfirm(false);
     try {
@@ -44,24 +44,25 @@ const JobDetailsPage = () => {
       } else {
         await dispatch(reopenJob(job.id)).unwrap();
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error || `Failed to ${action} job`);
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleDeleteJob = async () => {
+  const handleDeleteJob = (): void => {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (): Promise<void> => {
+    if (!job) return;
     setIsDeleting(true);
     setShowDeleteConfirm(false);
     try {
       await dispatch(deleteJob(job.id)).unwrap();
       navigate("/jobs");
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error || "Failed to delete job");
       setIsDeleting(false);
     }
@@ -96,7 +97,7 @@ const JobDetailsPage = () => {
           <p className="text-gray-500 mb-4">The job you're looking for doesn't exist or has been removed.</p>
           <button
             onClick={() => navigate("/jobs")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Back to Jobs
           </button>
@@ -113,7 +114,7 @@ const JobDetailsPage = () => {
       <div className="mb-3 md:mb-4">
         <button
           onClick={() => navigate("/jobs")}
-          className="text-xs md:text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+          className="text-xs md:text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 cursor-pointer"
         >
           <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -200,9 +201,9 @@ const JobDetailsPage = () => {
           {/* Action Buttons */}
           {canManageJob && (
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <button 
+              <button
                 onClick={() => setShowEditModal(true)}
-                className="px-3 md:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-xs md:text-sm flex items-center justify-center gap-2"
+                className="px-3 md:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-xs md:text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -212,7 +213,7 @@ const JobDetailsPage = () => {
               <button
                 onClick={handleToggleJobStatus}
                 disabled={isUpdating || isDeleting}
-                className={`px-3 md:px-4 py-2 rounded-lg transition-colors text-xs md:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`px-3 md:px-4 py-2 rounded-lg transition-colors text-xs md:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                   job.status === "OPEN"
                     ? "bg-gray-600 text-white hover:bg-gray-700"
                     : "bg-green-600 text-white hover:bg-green-700"
@@ -242,7 +243,7 @@ const JobDetailsPage = () => {
               <button
                 onClick={handleDeleteJob}
                 disabled={isUpdating || isDeleting}
-                className="px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isDeleting ? (
                   <>
@@ -294,9 +295,9 @@ const JobDetailsPage = () => {
 
       {/* Edit Job Modal */}
       {showEditModal && (
-        <EditJob 
-          job={job} 
-          onClose={() => setShowEditModal(false)} 
+        <EditJob
+          job={job}
+          onClose={() => setShowEditModal(false)}
         />
       )}
 
@@ -306,12 +307,19 @@ const JobDetailsPage = () => {
           <div className="bg-white rounded-lg w-full max-w-md shadow-xl">
             <div className="p-4 md:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${
-                  job.status === "OPEN" ? "bg-gray-100" : "bg-green-100"
-                }`}>
-                  <svg className={`w-5 h-5 md:w-6 md:h-6 ${
-                    job.status === "OPEN" ? "text-gray-600" : "text-green-600"
-                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div
+                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${
+                    job.status === "OPEN" ? "bg-gray-100" : "bg-green-100"
+                  }`}
+                >
+                  <svg
+                    className={`w-5 h-5 md:w-6 md:h-6 ${
+                      job.status === "OPEN" ? "text-gray-600" : "text-green-600"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     {job.status === "OPEN" ? (
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     ) : (
@@ -324,27 +332,28 @@ const JobDetailsPage = () => {
                     {job.status === "OPEN" ? "Close Job?" : "Reopen Job?"}
                   </h3>
                   <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-                    {job.status === "OPEN" 
-                      ? "This job will no longer accept new applications" 
+                    {job.status === "OPEN"
+                      ? "This job will no longer accept new applications"
                       : "This job will start accepting applications again"}
                   </p>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to {job.status === "OPEN" ? "close" : "reopen"} <span className="font-medium">"{job.title}"</span>?
+                Are you sure you want to {job.status === "OPEN" ? "close" : "reopen"}{" "}
+                <span className="font-medium">"{job.title}"</span>?
               </p>
-              
+
               <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={() => setShowCloseConfirm(false)}
-                  className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmToggleStatus}
-                  className={`flex-1 px-4 py-2 text-sm text-white rounded-lg transition-colors ${
+                  className={`flex-1 px-4 py-2 text-sm text-white rounded-lg transition-colors cursor-pointer ${
                     job.status === "OPEN"
                       ? "bg-gray-600 hover:bg-gray-700"
                       : "bg-green-600 hover:bg-green-700"
@@ -374,21 +383,22 @@ const JobDetailsPage = () => {
                   <p className="text-xs md:text-sm text-gray-500 mt-0.5">This action cannot be undone</p>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to permanently delete <span className="font-medium">"{job.title}"</span>? All associated candidates and data will be removed.
+                Are you sure you want to permanently delete <span className="font-medium">"{job.title}"</span>? All
+                associated candidates and data will be removed.
               </p>
-              
+
               <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
                 >
                   Delete Job
                 </button>

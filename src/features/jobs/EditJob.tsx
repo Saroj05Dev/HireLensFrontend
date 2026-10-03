@@ -1,35 +1,53 @@
-import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import React, { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useAppDispatch } from "../../store/hooks";
 import { updateJob } from "./jobsSlice";
-import { useState } from "react";
 import { toast } from "../../components/ui/Toast";
+import type { Job } from "../../types/job.types";
 
-const EditJob = ({ job, onClose }) => {
-  const dispatch = useDispatch();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { register, handleSubmit, formState: { errors } } = useForm({
+interface EditJobProps {
+  job: Job;
+  onClose: () => void;
+}
+
+interface EditJobFormInputs {
+  title: string;
+  description?: string;
+  skills: string;
+  experience?: string;
+  location?: string;
+}
+
+const EditJob: React.FC<EditJobProps> = ({ job, onClose }) => {
+  const dispatch = useAppDispatch();
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EditJobFormInputs>({
     defaultValues: {
       title: job.title,
       description: job.description,
-      skills: job.skills.join(", "),
+      skills: Array.isArray(job.skills) ? job.skills.join(", ") : "",
       experience: job.experience,
       location: job.location,
-    }
+    },
   });
 
-  const onSubmit = async (data) => {
+  const onSubmit: SubmitHandler<EditJobFormInputs> = async (data) => {
     setIsSubmitting(true);
-    
+
     const jobData = {
       ...data,
-      skills: data.skills.split(",").map(skill => skill.trim()).filter(Boolean)
+      skills: data.skills.split(",").map((skill) => skill.trim()).filter(Boolean),
     };
 
     try {
       await dispatch(updateJob({ jobId: job.id, jobData })).unwrap();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error || "Failed to update job");
     } finally {
       setIsSubmitting(false);
@@ -56,7 +74,7 @@ const EditJob = ({ job, onClose }) => {
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors"
+              className="text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg p-1.5 md:p-2 transition-colors cursor-pointer"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -180,15 +198,15 @@ const EditJob = ({ job, onClose }) => {
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base"
+            className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm md:text-base cursor-pointer"
           >
             Cancel
           </button>
-          
+
           <button
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base"
+            className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 shadow-sm text-sm md:text-base cursor-pointer"
           >
             {isSubmitting ? (
               <>

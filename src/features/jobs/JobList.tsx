@@ -1,7 +1,15 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import Loader from "../../components/ui/Loader";
+import type { Job } from "../../types/job.types";
 
-const JobList = ({ jobs, loading, viewMode = "grid" }) => {
+interface JobListProps {
+  jobs: Job[];
+  loading: boolean;
+  viewMode?: "grid" | "list";
+}
+
+const JobList: React.FC<JobListProps> = ({ jobs, loading, viewMode = "grid" }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -42,7 +50,6 @@ const JobList = ({ jobs, loading, viewMode = "grid" }) => {
             className="block p-5 hover:bg-gray-50 transition-colors"
           >
             <div className="flex justify-between items-start">
-              {/* Left */}
               <div className="flex-1">
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
@@ -132,7 +139,6 @@ const JobList = ({ jobs, loading, viewMode = "grid" }) => {
                 </div>
               </div>
 
-              {/* Right - Arrow */}
               <svg
                 className="w-5 h-5 text-gray-400 shrink-0 ml-4"
                 fill="none"
@@ -157,7 +163,6 @@ const JobList = ({ jobs, loading, viewMode = "grid" }) => {
           key={job.id}
           className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all group"
         >
-          {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">
@@ -175,17 +180,14 @@ const JobList = ({ jobs, loading, viewMode = "grid" }) => {
             </span>
           </div>
 
-          {/* Title */}
           <h3 className="font-semibold text-lg text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
             {job.title}
           </h3>
 
-          {/* Description */}
           {job.description && (
             <p className="text-sm text-gray-600 mb-4 line-clamp-2">{job.description}</p>
           )}
 
-          {/* Details */}
           <div className="space-y-2 mb-4">
             {job.location && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -221,7 +223,6 @@ const JobList = ({ jobs, loading, viewMode = "grid" }) => {
             )}
           </div>
 
-          {/* Skills */}
           {job.skills?.length > 0 && (
             <div className="flex gap-2 flex-wrap mb-4">
               {job.skills.slice(0, 3).map((skill) => (
@@ -240,7 +241,6 @@ const JobList = ({ jobs, loading, viewMode = "grid" }) => {
             </div>
           )}
 
-          {/* Footer */}
           <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-1 text-sm text-gray-600">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

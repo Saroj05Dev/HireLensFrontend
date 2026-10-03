@@ -1,124 +1,138 @@
-import { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getCandidatesByJob, candidateStageUpdatedRealtime, updateCandidateStage } from "../candidates/candidateSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import {
+  getCandidatesByJob,
+  candidateStageUpdatedRealtime,
+  updateCandidateStage,
+} from "../candidates/candidateSlice";
 import { onCandidateStageUpdated, offSocketEvent } from "../../helpers/socket";
 import CandidateCard from "../candidates/CandidateCard";
 import AddCandidate from "../candidates/AddCandidate";
 import CandidateProfile from "../candidates/CandidateProfile";
 import { toast } from "../../components/ui/Toast";
 import Loader from "../../components/ui/Loader";
+import type { Candidate, CandidateStage } from "../../types/candidate.types";
 
-// Linear stage order — must advance exactly one step at a time
-const STAGE_ORDER = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
+interface PipelineBoardProps {
+  jobTitle?: string;
+}
 
-const getNextValidStages = (currentStage) => {
+const STAGE_ORDER: CandidateStage[] = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "HIRED"];
+
+const getNextValidStages = (currentStage: CandidateStage): CandidateStage[] => {
   if (currentStage === "HIRED" || currentStage === "REJECTED") return [];
   const idx = STAGE_ORDER.indexOf(currentStage);
   const next = idx >= 0 && idx < STAGE_ORDER.length - 1 ? [STAGE_ORDER[idx + 1]] : [];
   return [...next, "REJECTED"];
 };
 
-const STAGES = [
-  { 
-    key: "APPLIED", 
-    label: "Applied", 
+interface StageColumnConfig {
+  key: CandidateStage;
+  label: string;
+  color: string;
+  icon: React.ReactNode;
+}
+
+const STAGES: StageColumnConfig[] = [
+  {
+    key: "APPLIED",
+    label: "Applied",
     color: "bg-blue-100 text-blue-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
-    )
+    ),
   },
-  { 
-    key: "SCREENING", 
-    label: "Screening", 
+  {
+    key: "SCREENING",
+    label: "Screening",
     color: "bg-purple-100 text-purple-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
-    )
+    ),
   },
-  { 
-    key: "INTERVIEW", 
-    label: "Interview", 
+  {
+    key: "INTERVIEW",
+    label: "Interview",
     color: "bg-amber-100 text-amber-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
-    )
+    ),
   },
-  { 
-    key: "OFFER", 
-    label: "Offer", 
+  {
+    key: "OFFER",
+    label: "Offer",
     color: "bg-green-100 text-green-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
-    )
+    ),
   },
-  { 
-    key: "HIRED", 
-    label: "Hired", 
+  {
+    key: "HIRED",
+    label: "Hired",
     color: "bg-emerald-100 text-emerald-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-    )
+    ),
   },
-  { 
-    key: "REJECTED", 
-    label: "Rejected", 
+  {
+    key: "REJECTED",
+    label: "Rejected",
     color: "bg-red-100 text-red-700",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
-    )
+    ),
   },
 ];
 
-const PipelineBoard = ({ jobTitle }) => {
-  const { id: jobId } = useParams();
-  const dispatch = useDispatch();
-  
-  const { candidatesByJob, jobCandidatesLoading, stageUpdateLoading } = useSelector((state) => state.candidates);
-  const { user } = useSelector((state) => state.auth);
-  const [showAddCandidate, setShowAddCandidate] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [stageFilter, setStageFilter] = useState("ALL");
-  const [dragOverStage, setDragOverStage] = useState(null);
-  const [draggedCandidate, setDraggedCandidate] = useState(null);
-  const [showDropConfirm, setShowDropConfirm] = useState(false);
-  const [dropNote, setDropNote] = useState("");
-  const [dropError, setDropError] = useState("");
+const PipelineBoard: React.FC<PipelineBoardProps> = () => {
+  const { id: jobId } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
 
-  const candidates = candidatesByJob[jobId] || [];
-  const loading = jobCandidatesLoading[jobId];
-  
-  // Detect if user is on mobile (screen width < 768px)
-  const [isMobile, setIsMobile] = useState(false);
-  
+  const { candidatesByJob, jobCandidatesLoading, stageUpdateLoading } = useAppSelector(
+    (state) => state.candidates
+  );
+  const { user } = useAppSelector((state) => state.auth);
+
+  const [showAddCandidate, setShowAddCandidate] = useState<boolean>(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<CandidateStage | null>(null);
+  const [draggedCandidate, setDraggedCandidate] = useState<(Candidate & { newStage: CandidateStage }) | null>(null);
+  const [showDropConfirm, setShowDropConfirm] = useState<boolean>(false);
+  const [dropNote, setDropNote] = useState<string>("" );
+  const [dropError, setDropError] = useState<string>("");
+
+  const candidates = (jobId && candidatesByJob[jobId]) || [];
+  const loading = jobId ? !!jobCandidatesLoading[jobId] : false;
+
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
-  
-  // Check if user can drag candidates (only RECRUITER and not on mobile)
+
   const canDragCandidates = user?.role === "RECRUITER" && !isMobile;
-  
-  // Check if user can manage candidates (RECRUITER on any device)
   const canManageCandidatesAnyDevice = user?.role === "RECRUITER";
+  const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
 
   useEffect(() => {
     if (jobId) {
@@ -126,10 +140,8 @@ const PipelineBoard = ({ jobTitle }) => {
     }
   }, [dispatch, jobId]);
 
-  // Set up real-time listeners
   useEffect(() => {
-    const handleCandidateStageUpdate = (data) => {
-      // Only update if it's for the current job
+    const handleCandidateStageUpdate = (data: { jobId: string; candidateId: string; toStage: CandidateStage }) => {
       if (data.jobId === jobId) {
         dispatch(candidateStageUpdatedRealtime(data));
       }
@@ -142,51 +154,44 @@ const PipelineBoard = ({ jobTitle }) => {
     };
   }, [dispatch, jobId]);
 
-  const getCandidatesByStage = (stage) => {
-    return candidates.filter(candidate => candidate.currentStage === stage);
+  const getCandidatesByStage = (stage: CandidateStage): Candidate[] => {
+    return candidates.filter((candidate) => candidate.currentStage === stage);
   };
 
-  const handleViewProfile = (candidate) => {
+  const handleViewProfile = (candidate: Candidate): void => {
     setSelectedCandidate(candidate);
   };
 
-  const canManageCandidates = user?.role === "RECRUITER" || user?.role === "ADMIN";
-
-  // Drag and drop handlers
-  const handleDragOver = (e, stage) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, stage: CandidateStage): void => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setDragOverStage(stage);
   };
 
-  const handleDragEnter = (e, stage) => {
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, stage: CandidateStage): void => {
     e.preventDefault();
     setDragOverStage(stage);
   };
 
-  const handleDragLeave = (e) => {
-    // Only clear if we're leaving the drop zone entirely
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>): void => {
     if (e.currentTarget === e.target) {
       setDragOverStage(null);
     }
   };
 
-  const handleDrop = (e, newStage) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, newStage: CandidateStage): void => {
     e.preventDefault();
-    
+
     const candidateId = e.dataTransfer.getData("candidateId");
-    const currentStage = e.dataTransfer.getData("currentStage");
-    
+    const currentStage = e.dataTransfer.getData("currentStage") as CandidateStage;
+
     setDragOverStage(null);
-    
-    // Don't update if dropping in the same stage
+
     if (currentStage === newStage) return;
-    
-    // Find the candidate
-    const candidate = candidates.find(c => c.id === candidateId);
+
+    const candidate = candidates.find((c) => c.id === candidateId);
     if (!candidate) return;
 
-    // Validate the transition before showing modal
     const validNext = getNextValidStages(currentStage);
     if (!validNext.includes(newStage)) {
       if (currentStage === "HIRED") {
@@ -199,45 +204,45 @@ const PipelineBoard = ({ jobTitle }) => {
       }
       return;
     }
-    
-    // Valid drop — show confirmation modal
+
     setDropError("");
     setDraggedCandidate({ ...candidate, newStage });
     setShowDropConfirm(true);
   };
 
-  const handleConfirmDrop = async () => {
+  const handleConfirmDrop = async (): Promise<void> => {
     if (!draggedCandidate) return;
     setDropError("");
-    
-    const result = await dispatch(updateCandidateStage({
-      candidateId: draggedCandidate.id,
-      newStage: draggedCandidate.newStage,
-      note: dropNote.trim()
-    }));
+
+    const result = await dispatch(
+      updateCandidateStage({
+        candidateId: draggedCandidate.id,
+        newStage: draggedCandidate.newStage,
+        note: dropNote.trim(),
+      })
+    );
 
     if (updateCandidateStage.rejected.match(result)) {
-      setDropError(result.payload || "Failed to update stage.");
+      setDropError((result.payload as string) || "Failed to update stage.");
       return;
     }
-    
+
     setShowDropConfirm(false);
     setDraggedCandidate(null);
     setDropNote("");
     setDropError("");
   };
 
-  const handleCancelDrop = () => {
+  const handleCancelDrop = (): void => {
     setShowDropConfirm(false);
     setDraggedCandidate(null);
     setDropNote("");
     setDropError("");
   };
 
-  // Calculate stats
   const totalCandidates = candidates.length;
-  const activeCandidates = candidates.filter(c => 
-    !["HIRED", "REJECTED"].includes(c.currentStage)
+  const activeCandidates = candidates.filter(
+    (c) => !["HIRED", "REJECTED"].includes(c.currentStage)
   ).length;
 
   if (loading) {
@@ -265,7 +270,7 @@ const PipelineBoard = ({ jobTitle }) => {
                 Click on avatar or name to view candidate profile
               </p>
             </div>
-            
+
             {/* Stats */}
             <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">
               <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 bg-blue-50 rounded-lg">
@@ -282,7 +287,7 @@ const PipelineBoard = ({ jobTitle }) => {
           {canManageCandidates && (
             <button
               onClick={() => setShowAddCandidate(true)}
-              className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs md:text-sm shadow-sm w-full sm:w-auto"
+              className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs md:text-sm shadow-sm w-full sm:w-auto cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -316,7 +321,7 @@ const PipelineBoard = ({ jobTitle }) => {
           {canManageCandidates && (
             <button
               onClick={() => setShowAddCandidate(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2 text-sm md:text-base"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2 text-sm md:text-base cursor-pointer"
             >
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -332,12 +337,9 @@ const PipelineBoard = ({ jobTitle }) => {
             {STAGES.map((stage) => {
               const stageCandidates = getCandidatesByStage(stage.key);
               const isDropZone = dragOverStage === stage.key;
-              
+
               return (
-                <div
-                  key={stage.key}
-                  className="min-w-[240px] md:min-w-[280px] shrink-0"
-                >
+                <div key={stage.key} className="min-w-[240px] md:min-w-[280px] shrink-0">
                   {/* Stage Header */}
                   <div className="bg-gray-50 rounded-lg p-2 md:p-3 mb-2 md:mb-3 border border-gray-200">
                     <div className="flex items-center justify-between mb-1">
@@ -351,11 +353,11 @@ const PipelineBoard = ({ jobTitle }) => {
                     </div>
                   </div>
 
-                  {/* Candidates List - Drop Zone */}
-                  <div 
+                  {/* Drop Zone */}
+                  <div
                     className={`space-y-2 md:space-y-3 max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 rounded-lg transition-all ${
                       isDropZone && canDragCandidates
-                        ? "bg-blue-50 border-2 border-blue-400 border-dashed p-1 md:p-2" 
+                        ? "bg-blue-50 border-2 border-blue-400 border-dashed p-1 md:p-2"
                         : "border-2 border-transparent p-1 md:p-2"
                     }`}
                     onDragOver={(e) => canDragCandidates && handleDragOver(e, stage.key)}
@@ -364,9 +366,13 @@ const PipelineBoard = ({ jobTitle }) => {
                     onDrop={(e) => canDragCandidates && handleDrop(e, stage.key)}
                   >
                     {stageCandidates.length === 0 ? (
-                      <div className={`text-xs text-gray-400 text-center py-6 md:py-8 rounded-lg border-2 border-dashed ${
-                        isDropZone && canDragCandidates ? "border-blue-400 bg-blue-100" : "border-gray-200 bg-gray-50"
-                      }`}>
+                      <div
+                        className={`text-xs text-gray-400 text-center py-6 md:py-8 rounded-lg border-2 border-dashed ${
+                          isDropZone && canDragCandidates
+                            ? "border-blue-400 bg-blue-100"
+                            : "border-gray-200 bg-gray-50"
+                        }`}
+                      >
                         <svg
                           className={`w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 ${
                             isDropZone && canDragCandidates ? "text-blue-400" : "text-gray-300"
@@ -404,7 +410,7 @@ const PipelineBoard = ({ jobTitle }) => {
       )}
 
       {/* Add Candidate Modal */}
-      {showAddCandidate && (
+      {showAddCandidate && jobId && (
         <AddCandidate
           jobId={jobId}
           onClose={() => setShowAddCandidate(false)}
@@ -429,7 +435,7 @@ const PipelineBoard = ({ jobTitle }) => {
                 {draggedCandidate.newStage}
               </span>?
             </h3>
-            
+
             <p className="text-xs md:text-sm text-gray-600 mb-4">
               From: <span className="font-medium">{draggedCandidate.currentStage}</span>
             </p>
@@ -439,29 +445,31 @@ const PipelineBoard = ({ jobTitle }) => {
                 {dropError}
               </div>
             )}
-            
+
             <textarea
               value={dropNote}
               onChange={(e) => setDropNote(e.target.value)}
               placeholder="Add a note about this stage change (optional)"
-              disabled={stageUpdateLoading[draggedCandidate.id]}
+              disabled={!!stageUpdateLoading[draggedCandidate.id]}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
               rows={3}
             />
-            
+
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4">
               <button
                 onClick={handleCancelDrop}
-                disabled={stageUpdateLoading[draggedCandidate.id]}
-                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!!stageUpdateLoading[draggedCandidate.id]}
+                className="px-4 py-2 text-xs md:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDrop}
-                disabled={stageUpdateLoading[draggedCandidate.id]}
-                className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
-                  draggedCandidate.newStage === "REJECTED" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                disabled={!!stageUpdateLoading[draggedCandidate.id]}
+                className={`px-4 py-2 text-xs md:text-sm text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer ${
+                  draggedCandidate.newStage === "REJECTED"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
                 {stageUpdateLoading[draggedCandidate.id] && (
