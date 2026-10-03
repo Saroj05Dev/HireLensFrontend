@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "INTERVIEWER" | "MEMBER" | string;
+export type UserRole = "ADMIN" | "INTERVIEWER" | "MEMBER" | "RECRUITER" | string;
 
 export interface User {
   id: string;
@@ -6,7 +6,9 @@ export interface User {
   email: string;
   role: UserRole;
   organizationId: string;
+  organizationName?: string;
   avatar?: string;
+  avatarUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

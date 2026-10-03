@@ -1,10 +1,18 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../../store/hooks";
 
-const MobileBottomNav = () => {
-  const role = useSelector((state) => state.auth.user?.role);
+interface MobileMenuItem {
+  to: string;
+  label: string;
+  roles: string[];
+  icon: (isActive: boolean) => React.ReactNode;
+}
+
+const MobileBottomNav: React.FC = () => {
+  const role = useAppSelector((state) => state.auth.user?.role);
   
-  const menuItems = [
+  const menuItems: MobileMenuItem[] = [
     {
       to: "/dashboard",
       label: "Dashboard",
@@ -67,8 +75,7 @@ const MobileBottomNav = () => {
     }
   ];
 
-  // Filter menu items based on role
-  const visibleMenuItems = menuItems.filter((item) => item.roles.includes(role));
+  const visibleMenuItems = menuItems.filter((item) => role && item.roles.includes(role));
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-inset-bottom">

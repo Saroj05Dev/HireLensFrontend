@@ -1,35 +1,33 @@
-import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../features/auth/authSlice';
 import { getUnreadCount, selectUnreadCount } from '../../features/notifications/notificationSlice';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 import SearchBar from './SearchBar';
 
-const Navbar = () => {
-  const dispatch = useDispatch();
+const Navbar: React.FC = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user);
-  const unreadCount = useSelector(selectUnreadCount);
+  const user = useAppSelector((state) => state.auth.user);
+  const unreadCount = useAppSelector(selectUnreadCount);
   
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
   
-  const userMenuRef = useRef(null);
-  const notificationsRef = useRef(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
 
-  // Load unread notification count
   useEffect(() => {
     dispatch(getUnreadCount());
   }, [dispatch]);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
     };
@@ -38,23 +36,22 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     dispatch(logout());
     navigate('/login');
   };
 
-  // Get user initials for avatar
-  const getInitials = (name) => {
+  const getInitials = (name?: string): string => {
     if (!name) return 'U';
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
-  const getRoleBadgeColor = (role) => {
+  const getRoleBadgeColor = (role?: string): string => {
     switch (role) {
       case 'ADMIN':
         return 'bg-purple-100 text-purple-700';
@@ -73,7 +70,7 @@ const Navbar = () => {
       <div className="flex items-center gap-2 md:gap-6 shrink-0">
         <button 
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
         >
           <img 
             src="/images/hirelens-logo.png" 
@@ -82,7 +79,6 @@ const Navbar = () => {
           />
         </button>
         
-        {/* Organization Name - Hidden on small screens */}
         {user?.organizationName && (
           <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-700 rounded-lg border border-slate-600">
             <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +89,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Center - Search Bar (desktop) / inline search (mobile) */}
+      {/* Center - Search Bar */}
       <div className="flex-1 mx-3 md:mx-4 lg:mx-8 max-w-2xl">
         {user?.role === 'INTERVIEWER' ? (
           <div className="relative">
@@ -123,7 +119,7 @@ const Navbar = () => {
         <div className="relative" ref={notificationsRef}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+            className="relative p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -145,12 +141,12 @@ const Navbar = () => {
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 md:gap-3 p-1.5 md:p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            className="flex items-center gap-2 md:gap-3 p-1.5 md:p-2 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
           >
             <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden">
-              {user?.avatarUrl ? (
+              {user?.avatar ? (
                 <img 
-                  src={user.avatarUrl} 
+                  src={user.avatar} 
                   alt={user.name}
                   className="w-full h-full object-cover"
                 />
@@ -190,7 +186,7 @@ const Navbar = () => {
                     setShowUserMenu(false);
                     navigate('/profile');
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2 transition-colors"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -202,7 +198,7 @@ const Navbar = () => {
               <div className="p-2 border-t border-gray-100">
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors"
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

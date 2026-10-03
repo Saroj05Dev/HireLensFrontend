@@ -1,10 +1,14 @@
+import React from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import MobileBottomNav from "./MobileBottomNav";
 
-const Layout = ({ children }) => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
 
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="h-screen flex flex-col bg-slate-50">
       {/* Top Navbar */}

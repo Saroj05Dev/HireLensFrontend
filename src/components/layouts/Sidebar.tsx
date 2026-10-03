@@ -1,10 +1,18 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../../store/hooks";
 
-const Sidebar = () => {
-  const role = useSelector((state) => state.auth.user?.role);
+interface MenuItem {
+  to: string;
+  label: string;
+  roles: string[];
+  icon: React.ReactNode;
+}
+
+const Sidebar: React.FC = () => {
+  const role = useAppSelector((state) => state.auth.user?.role);
   
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       to: "/dashboard",
       label: "Dashboard",
@@ -67,18 +75,16 @@ const Sidebar = () => {
     }
   ];
 
-  const visibleMenuItems = menuItems.filter((item) => item.roles.includes(role));
+  const visibleMenuItems = menuItems.filter((item) => role && item.roles.includes(role));
 
   return (
     <aside className="hidden md:flex w-64 bg-slate-900 border-r border-slate-800 flex-col">
-      {/* Sidebar Header */}
       <div className="p-4 border-b border-slate-800">
         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
           Navigation
         </div>
       </div>
 
-      {/* Navigation Links */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {visibleMenuItems.map((item) => (
           <NavLink
@@ -98,7 +104,6 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Sidebar Footer */}
       <div className="p-4 border-t border-slate-800">
         <div className="bg-slate-800 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-2">
