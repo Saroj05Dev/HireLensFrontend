@@ -32,6 +32,17 @@ const processQueue = (error: unknown = null): void => {
   });
   failedQueue = [];
 };
+
+// Add request interceptor to include tokens from localStorage as fallback
+axiosInstance.interceptors.request.use((config) => {
+  // If no cookies (incognito mode), add Authorization header from localStorage
+  const accessToken = localStorage.getItem("accessToken");
+  if (accessToken && !config.headers.Cookie) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -56,6 +67,9 @@ axiosInstance.interceptors.response.use(
       }
 
       if (isRefreshEndpoint) {
+        // Clear stored tokens on refresh failure
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         if (onLogout) onLogout();
         return Promise.reject(error);
       }
@@ -69,17 +83,29 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await axios.post(
+        // Try refresh with cookies first, then with stored tokens as fallback
+        const refreshToken = localStorage.getItem("refreshToken");
+        const refreshData = refreshToken ? { refreshToken } : {};
+        
+        const refreshResponse = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
-          {},
+          refreshData,
           { withCredentials: true }
         );
+
+        // Store new access token if provided in response
+        if (refreshResponse.data.data?.accessToken) {
+          localStorage.setItem("accessToken", refreshResponse.data.data.accessToken);
+        }
 
         processQueue(null);
         return axiosInstance(originalRequest);
       } catch (err) {
         processQueue(err);
-
+        
+        // Clear stored tokens on refresh failure
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         if (onLogout) onLogout();
 
         return Promise.reject(err);
