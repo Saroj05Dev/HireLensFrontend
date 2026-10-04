@@ -25,17 +25,13 @@ const Login: React.FC = () => {
     const res = await dispatch(login(data));
 
     if (login.fulfilled.match(res)) {
-      const userRes = await dispatch(fetchMe());
+      // User data is now available directly from login response
+      const userRole = res.payload.role;
 
-      // Redirect based on role
-      if (fetchMe.fulfilled.match(userRes)) {
-        const userRole = userRes.payload.role;
-
-        if (userRole === "INTERVIEWER") {
-          navigate("/interviews");
-        } else {
-          navigate("/dashboard");
-        }
+      if (userRole === "INTERVIEWER") {
+        navigate("/interviews");
+      } else {
+        navigate("/dashboard");
       }
     }
   };

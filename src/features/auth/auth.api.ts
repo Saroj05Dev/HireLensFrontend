@@ -8,6 +8,7 @@ import type {
   ResetPasswordPayload,
   SignupPayload,
   LoginPayload,
+  User,
 } from "../../types/auth.types";
 
 export const sendOTPApi = async (payload: SendOtpPayload): Promise<AxiosResponse> => {
@@ -34,8 +35,9 @@ export const signupApi = async (payload: SignupPayload): Promise<AxiosResponse> 
   return axiosInstance.post("/auth/register", payload);
 };
 
-export const loginApi = async (payload: LoginPayload): Promise<AxiosResponse> => {
-  return axiosInstance.post("/auth/login", payload);
+export const loginApi = async (payload: LoginPayload): Promise<User> => {
+  const response = await axiosInstance.post<{ success: boolean; data: User; message: string }>("/auth/login", payload);
+  return response.data.data;
 };
 
 export const logoutApi = async (): Promise<AxiosResponse> => {

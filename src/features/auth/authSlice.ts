@@ -53,12 +53,12 @@ export const signup = createAsyncThunk<boolean, SignupPayload, { rejectValue: st
 );
 
 // Login
-export const login = createAsyncThunk<boolean, LoginPayload, { rejectValue: string }>(
+export const login = createAsyncThunk<User, LoginPayload, { rejectValue: string }>(
   "auth/login",
   async (formData, { rejectWithValue }) => {
     try {
-      await loginApi(formData);
-      return true;
+      const user = await loginApi(formData);
+      return user;
     } catch (error) {
       const err = error as AxiosError<ApiErrorResponse>;
       return rejectWithValue(
@@ -167,8 +167,16 @@ const authSlice = createSlice({
       .addCase(signup.fulfilled, (state) => {
         state.authLoading = false;
       })
-      .addCase(login.fulfilled, (state) => {
+      .addCase(login.fulfilled, (state, action: PayloadAction<User>) => {
         state.authLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        
+        // Connect socket with user data
+        connectSocket({
+          userId: action.payload.id,
+          organizationId: action.payload.organizationId,
+        });
       })
       .addCase(acceptInvite.fulfilled, (state) => {
         state.authLoading = false;
