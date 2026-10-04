@@ -18,6 +18,7 @@ const ProfilePage: React.FC = () => {
   const { profile, loading, error, uploadingAvatar } = useAppSelector(
     (state) => state.profile
   );
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -28,17 +29,32 @@ const ProfilePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    // Always fetch complete profile data to get title and other profile-specific fields
     dispatch(fetchProfile());
   }, [dispatch]);
 
+  // Use profile data if available, otherwise fall back to user data from auth
+  const displayData = profile || (user && {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    organizationId: user.organizationId,
+    organizationName: user.organizationName,
+    avatarUrl: user.avatarUrl || user.avatar,
+    title: undefined,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  });
+
   useEffect(() => {
-    if (profile) {
+    if (displayData) {
       setFormData({
-        name: profile.name || "",
-        title: profile.title || "",
+        name: displayData.name || "",
+        title: displayData.title || "",
       });
     }
-  }, [profile]);
+  }, [displayData]);
 
   useEffect(() => {
     if (error) {
@@ -116,10 +132,18 @@ const ProfilePage: React.FC = () => {
       .slice(0, 2);
   };
 
-  if (loading && !profile) {
+  if (loading && !displayData) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated && !displayData) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-500">Please log in to view your profile.</div>
       </div>
     );
   }
@@ -153,16 +177,16 @@ const ProfilePage: React.FC = () => {
                 className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer"
                 onClick={handleAvatarClick}
               >
-                {profile?.avatarUrl ? (
+                {displayData?.avatarUrl ? (
                   <img
-                    src={profile.avatarUrl}
-                    alt={profile.name}
+                    src={displayData.avatarUrl}
+                    alt={displayData.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                     <span className="text-white text-3xl md:text-4xl font-semibold">
-                      {getInitials(profile?.name)}
+                      {getInitials(displayData?.name)}
                     </span>
                   </div>
                 )}
@@ -226,7 +250,7 @@ const ProfilePage: React.FC = () => {
                 />
               ) : (
                 <p className="text-sm md:text-base text-gray-900 py-2">
-                  {profile?.name}
+                  {displayData?.name}
                 </p>
               )}
             </div>
@@ -236,7 +260,7 @@ const ProfilePage: React.FC = () => {
                 Email
               </label>
               <p className="text-sm md:text-base text-gray-900 py-2">
-                {profile?.email}
+                {displayData?.email}
               </p>
             </div>
 
@@ -246,10 +270,10 @@ const ProfilePage: React.FC = () => {
               </label>
               <span
                 className={`inline-block px-3 py-1 text-xs md:text-sm font-medium rounded ${getRoleBadgeColor(
-                  profile?.role
+                  displayData?.role
                 )}`}
               >
-                {profile?.role}
+                {displayData?.role}
               </span>
             </div>
 
@@ -258,7 +282,7 @@ const ProfilePage: React.FC = () => {
                 Organization
               </label>
               <p className="text-sm md:text-base text-gray-900 py-2">
-                {profile?.organizationName}
+                {displayData?.organizationName}
               </p>
             </div>
 
@@ -277,7 +301,7 @@ const ProfilePage: React.FC = () => {
                 />
               ) : (
                 <p className="text-sm md:text-base text-gray-900 py-2">
-                  {profile?.title || (
+                  {displayData?.title || (
                     <span className="text-gray-400">Not set</span>
                   )}
                 </p>
@@ -299,8 +323,8 @@ const ProfilePage: React.FC = () => {
                     onClick={() => {
                       setIsEditing(false);
                       setFormData({
-                        name: profile?.name || "",
-                        title: profile?.title || "",
+                        name: displayData?.name || "",
+                        title: displayData?.title || "",
                       });
                     }}
                     className="flex-1 md:flex-none px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium cursor-pointer"

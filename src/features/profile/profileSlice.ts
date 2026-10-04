@@ -1,12 +1,14 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import * as profileAPI from "./profile.api";
+import { login } from "../auth/authSlice";
 import type {
   UserProfile,
   ProfileState,
   UpdateProfilePayload,
   UploadAvatarResponse,
 } from "../../types/profile.types";
+import type { User } from "../../types/auth.types";
 
 interface ApiErrorResponse {
   message?: string;
@@ -74,6 +76,22 @@ const profileSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    setProfileFromUser: (state, action: PayloadAction<User>) => {
+      // Initialize profile from user data after login
+      const user = action.payload;
+      state.profile = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        organizationId: user.organizationId,
+        organizationName: user.organizationName,
+        avatarUrl: user.avatarUrl || user.avatar,
+        title: undefined, // Title is not available in auth user data
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -126,9 +144,25 @@ const profileSlice = createSlice({
       .addCase(uploadAvatar.rejected, (state, action) => {
         state.uploadingAvatar = false;
         state.error = action.payload ?? "Failed to upload avatar";
+      })
+      // Listen to login success to initialize profile
+      .addCase(login.fulfilled, (state, action) => {
+        const user = action.payload;
+        state.profile = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          organizationId: user.organizationId,
+          organizationName: user.organizationName,
+          avatarUrl: user.avatarUrl || user.avatar,
+          title: undefined, // Title will be fetched separately
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        };
       });
   },
 });
 
-export const { clearError } = profileSlice.actions;
+export const { clearError, setProfileFromUser } = profileSlice.actions;
 export default profileSlice.reducer;
