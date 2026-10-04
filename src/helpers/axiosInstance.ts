@@ -35,9 +35,9 @@ const processQueue = (error: unknown = null): void => {
 
 // Add request interceptor to include tokens from localStorage as fallback
 axiosInstance.interceptors.request.use((config) => {
-  // If no cookies (incognito mode), add Authorization header from localStorage
+  // If no Authorization header is already set and we have a stored token, add it
   const accessToken = localStorage.getItem("accessToken");
-  if (accessToken && !config.headers.Cookie) {
+  if (accessToken && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
