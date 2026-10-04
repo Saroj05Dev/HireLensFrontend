@@ -1,27 +1,19 @@
-import axios from "axios";
+import axiosInstance from "../../helpers/axiosInstance";
 import type {
   UserProfile,
   UpdateProfilePayload,
   UploadAvatarResponse,
 } from "../../types/profile.types";
 
-const API_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3500/api/v1";
-
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
-
 export const getProfile = async (): Promise<{ data: UserProfile }> => {
-  const response = await api.get<{ data: UserProfile }>("/profile");
+  const response = await axiosInstance.get<{ data: UserProfile }>("/profile");
   return response.data;
 };
 
 export const updateProfile = async (
   data: UpdateProfilePayload
 ): Promise<{ data: UserProfile }> => {
-  const response = await api.put<{ data: UserProfile }>("/profile", data);
+  const response = await axiosInstance.put<{ data: UserProfile }>("/profile", data);
   return response.data;
 };
 
@@ -31,7 +23,7 @@ export const uploadAvatar = async (
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const response = await api.post<{ data: UploadAvatarResponse }>(
+  const response = await axiosInstance.post<{ data: UploadAvatarResponse }>(
     "/profile/avatar",
     formData,
     {
