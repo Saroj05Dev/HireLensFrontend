@@ -37,12 +37,12 @@ export const fetchMe = createAsyncThunk<User, void, { rejectValue: string | null
 );
 
 // Signup
-export const signup = createAsyncThunk<boolean, SignupPayload, { rejectValue: string }>(
+export const signup = createAsyncThunk<User, SignupPayload, { rejectValue: string }>(
   "auth/signup",
   async (formData, { rejectWithValue }) => {
     try {
-      await signupApi(formData);
-      return true;
+      const user = await signupApi(formData);
+      return user;
     } catch (error) {
       const err = error as AxiosError<ApiErrorResponse>;
       return rejectWithValue(
@@ -164,8 +164,16 @@ const authSlice = createSlice({
         state.authLoading = true;
         state.authError = null;
       })
-      .addCase(signup.fulfilled, (state) => {
+      .addCase(signup.fulfilled, (state, action: PayloadAction<User>) => {
         state.authLoading = false;
+        state.loading = false; // stop the initial loading spinner
+        state.user = action.payload;
+        state.isAuthenticated = true;
+
+        connectSocket({
+          userId: action.payload.id,
+          organizationId: action.payload.organizationId,
+        });
       })
       .addCase(login.fulfilled, (state, action: PayloadAction<User>) => {
         state.authLoading = false;

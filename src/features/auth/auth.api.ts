@@ -31,8 +31,27 @@ export const resetPasswordApi = async (payload: ResetPasswordPayload): Promise<A
   return axiosInstance.post("/auth/reset-password", payload);
 };
 
-export const signupApi = async (payload: SignupPayload): Promise<AxiosResponse> => {
-  return axiosInstance.post("/auth/register", payload);
+export const signupApi = async (payload: SignupPayload): Promise<User> => {
+  const response = await axiosInstance.post<{
+    success: boolean;
+    data: {
+      user: User;
+      organization: { id: string };
+      tokens?: {
+        accessToken: string;
+        refreshToken: string;
+      };
+    };
+    message: string;
+  }>("/auth/register", payload);
+
+  // Store tokens in localStorage as fallback for incognito mode (same as login)
+  if (response.data.data.tokens) {
+    localStorage.setItem("accessToken", response.data.data.tokens.accessToken);
+    localStorage.setItem("refreshToken", response.data.data.tokens.refreshToken);
+  }
+
+  return response.data.data.user;
 };
 
 export const loginApi = async (payload: LoginPayload) => {

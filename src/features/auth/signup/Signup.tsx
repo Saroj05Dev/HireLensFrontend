@@ -3,7 +3,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
 import { AxiosError } from "axios";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { fetchMe, signup } from "../authSlice";
+import { signup } from "../authSlice";
 import { sendOTPApi, verifyOTPApi } from "../auth.api";
 
 interface SignupFormInputs {
@@ -117,7 +117,7 @@ const Signup: React.FC = () => {
     try {
       const res = await dispatch(signup(data));
       if (signup.fulfilled.match(res)) {
-        await dispatch(fetchMe());
+        // User is already authenticated via signup.fulfilled reducer — go straight to dashboard
         navigate("/dashboard");
       }
     } catch (error) {

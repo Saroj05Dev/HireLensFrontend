@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import * as profileAPI from "./profile.api";
-import { login } from "../auth/authSlice";
+import { login, signup } from "../auth/authSlice";
 import type {
   UserProfile,
   ProfileState,
@@ -62,6 +62,20 @@ export const uploadAvatar = createAsyncThunk<
   }
 });
 
+// Shared helper — seeds profile state from auth user data (login or signup)
+const profileFromUser = (user: User): UserProfile => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  organizationId: user.organizationId,
+  organizationName: user.organizationName,
+  avatarUrl: user.avatarUrl || user.avatar,
+  title: undefined, // title is only available from GET /profile
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
+
 const initialState: ProfileState = {
   profile: null,
   loading: false,
@@ -75,22 +89,6 @@ const profileSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
-    },
-    setProfileFromUser: (state, action: PayloadAction<User>) => {
-      // Initialize profile from user data after login
-      const user = action.payload;
-      state.profile = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        organizationName: user.organizationName,
-        avatarUrl: user.avatarUrl || user.avatar,
-        title: undefined, // Title is not available in auth user data
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      };
     },
   },
   extraReducers: (builder) => {
@@ -145,24 +143,15 @@ const profileSlice = createSlice({
         state.uploadingAvatar = false;
         state.error = action.payload ?? "Failed to upload avatar";
       })
-      // Listen to login success to initialize profile
+      // Seed profile immediately on login OR signup — no extra API call needed
       .addCase(login.fulfilled, (state, action) => {
-        const user = action.payload;
-        state.profile = {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          organizationId: user.organizationId,
-          organizationName: user.organizationName,
-          avatarUrl: user.avatarUrl || user.avatar,
-          title: undefined, // Title will be fetched separately
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        };
+        state.profile = profileFromUser(action.payload);
+      })
+      .addCase(signup.fulfilled, (state, action) => {
+        state.profile = profileFromUser(action.payload);
       });
   },
 });
 
-export const { clearError, setProfileFromUser } = profileSlice.actions;
+export const { clearError } = profileSlice.actions;
 export default profileSlice.reducer;
