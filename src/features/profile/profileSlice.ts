@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import * as profileAPI from "./profile.api";
-import { login, signup } from "../auth/authSlice";
+import { login, signup, acceptInvite } from "../auth/authSlice";
 import type {
   UserProfile,
   ProfileState,
@@ -143,11 +143,14 @@ const profileSlice = createSlice({
         state.uploadingAvatar = false;
         state.error = action.payload ?? "Failed to upload avatar";
       })
-      // Seed profile immediately on login OR signup — no extra API call needed
+      // Seed profile immediately on login, signup, OR invite acceptance
       .addCase(login.fulfilled, (state, action) => {
         state.profile = profileFromUser(action.payload);
       })
       .addCase(signup.fulfilled, (state, action) => {
+        state.profile = profileFromUser(action.payload);
+      })
+      .addCase(acceptInvite.fulfilled, (state, action) => {
         state.profile = profileFromUser(action.payload);
       });
   },

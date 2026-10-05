@@ -39,6 +39,12 @@ export const disconnectSocket = (): void => {
 };
 
 // Generic listener handler for flexibility with payload types
+export const onInviteAccepted = <T = unknown>(callback: (data: T) => void): void => {
+  if (socket) {
+    socket.on("invite:accepted", callback);
+  }
+};
+
 export const onCandidateStageUpdated = <T = unknown>(callback: (data: T) => void): void => {
   if (socket) {
     socket.on("candidate:stage-updated", callback);

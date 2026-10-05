@@ -16,6 +16,7 @@ import InviteUserModal from "../features/team/InviteUserModal";
 import Loader from "../components/ui/Loader";
 import MembersList from "../features/team/MembersList";
 import PendingInvitesList from "../features/team/PendingInvitesList";
+import { onInviteAccepted, offSocketEvent } from "../helpers/socket";
 
 const TeamPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -39,6 +40,20 @@ const TeamPage: React.FC = () => {
       dispatch(fetchMembers());
       dispatch(fetchPendingInvites());
     }
+  }, [dispatch, user]);
+
+  // Real-time: re-fetch when someone accepts an invite
+  useEffect(() => {
+    if (user?.role !== "ADMIN") return;
+
+    onInviteAccepted(() => {
+      dispatch(fetchMembers());
+      dispatch(fetchPendingInvites());
+    });
+
+    return () => {
+      offSocketEvent("invite:accepted");
+    };
   }, [dispatch, user]);
 
   const handleOpenInviteModal = (): void => {

@@ -84,15 +84,15 @@ export const logout = createAsyncThunk<void, void>(
 
 // Accept Invite
 export const acceptInvite = createAsyncThunk<
-  unknown,
+  User,
   AcceptInvitePayload,
   { rejectValue: string }
 >(
   "auth/acceptInvite",
   async ({ token, name, password }, { rejectWithValue }) => {
     try {
-      const res = await acceptInviteApi({ token, name, password });
-      return res;
+      const user = await acceptInviteApi({ token, name, password });
+      return user;
     } catch (error) {
       const err = error as AxiosError<ApiErrorResponse>;
       return rejectWithValue(
@@ -186,8 +186,16 @@ const authSlice = createSlice({
           organizationId: action.payload.organizationId,
         });
       })
-      .addCase(acceptInvite.fulfilled, (state) => {
+      .addCase(acceptInvite.fulfilled, (state, action: PayloadAction<User>) => {
         state.authLoading = false;
+        state.loading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+
+        connectSocket({
+          userId: action.payload.id,
+          organizationId: action.payload.organizationId,
+        });
       })
       .addCase(signup.rejected, (state, action) => {
         state.authLoading = false;

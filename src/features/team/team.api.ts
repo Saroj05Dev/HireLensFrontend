@@ -6,7 +6,7 @@ import type {
   InviteUserPayload,
   InviteUserResponse,
 } from "../../types/team.types";
-import type { AcceptInvitePayload } from "../../types/auth.types";
+import type { AcceptInvitePayload, User } from "../../types/auth.types";
 
 // Get all organization members
 export const fetchMembersApi = async (): Promise<TeamMember[]> => {
@@ -64,15 +64,28 @@ export const acceptInviteApi = async ({
   token,
   name,
   password,
-}: AcceptInvitePayload): Promise<any> => {
-  const response = await axios.post(
+}: AcceptInvitePayload): Promise<User> => {
+  const response = await axios.post<{
+    success: boolean;
+    data: {
+      user: User;
+      tokens?: {
+        accessToken: string;
+        refreshToken: string;
+      };
+    };
+    message: string;
+  }>(
     `${import.meta.env.VITE_API_BASE_URL}/auth/accept-invite`,
-    {
-      token,
-      name,
-      password,
-    },
+    { token, name, password },
     { withCredentials: true }
   );
-  return response.data.data;
+
+  // Store tokens in localStorage as fallback (same pattern as login/register)
+  if (response.data.data.tokens) {
+    localStorage.setItem("accessToken", response.data.data.tokens.accessToken);
+    localStorage.setItem("refreshToken", response.data.data.tokens.refreshToken);
+  }
+
+  return response.data.data.user;
 };
