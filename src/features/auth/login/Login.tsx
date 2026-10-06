@@ -25,7 +25,6 @@ const Login: React.FC = () => {
     const res = await dispatch(login(data));
 
     if (login.fulfilled.match(res)) {
-      // User data is now available directly from login response
       const userRole = res.payload.role;
 
       if (userRole === "INTERVIEWER") {
@@ -33,6 +32,13 @@ const Login: React.FC = () => {
       } else {
         navigate("/dashboard");
       }
+
+      // Fetch the full profile (name, email, organizationName) after navigation.
+      // login() seeds basic auth state immediately, but fetchMe fills in the
+      // complete user object — especially important on the deployed link where
+      // cross-origin cookies aren't sent on the cold App.tsx fetchMe call, so
+      // the tokens stored in localStorage by loginApi are used here instead.
+      dispatch(fetchMe());
     }
   };
 

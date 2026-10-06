@@ -73,7 +73,7 @@ const Navbar: React.FC = () => {
           className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
         >
           <img 
-            src="/images/hirelens-logo.png" 
+            src="/images/hirelens-nav-logo.png" 
             alt="HireLens Logo" 
             className="h-8 md:h-10 w-auto rounded-lg"
           />

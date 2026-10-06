@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { acceptInvite } from "../features/auth/authSlice";
+import { acceptInvite, fetchMe } from "../features/auth/authSlice";
 import { validateInviteTokenApi } from "../features/team/team.api";
 import AcceptInviteForm from "../features/team/AcceptInviteForm";
 import { Mail, Shield, AlertCircle } from "lucide-react";
@@ -56,9 +56,9 @@ const AcceptInvitePage: React.FC = () => {
     );
 
     if (acceptInvite.fulfilled.match(res)) {
-      // User is already authenticated via acceptInvite.fulfilled reducer
       const role = res.payload.role;
       navigate(role === "INTERVIEWER" ? "/interviews" : "/dashboard");
+      dispatch(fetchMe());
     }
   };
 
