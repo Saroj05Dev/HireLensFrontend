@@ -46,7 +46,8 @@ export const signup = createAsyncThunk<boolean, SignupPayload, { rejectValue: st
     } catch (error) {
       const err = error as AxiosError<ApiErrorResponse>;
       return rejectWithValue(
-        err.response?.data?.message || "Something went wrong"
+        err.response?.data?.message ||
+        (error instanceof Error ? error.message : "Something went wrong")
       );
     }
   }
@@ -62,7 +63,8 @@ export const login = createAsyncThunk<boolean, LoginPayload, { rejectValue: stri
     } catch (error) {
       const err = error as AxiosError<ApiErrorResponse>;
       return rejectWithValue(
-        err.response?.data?.message || "Something went wrong"
+        err.response?.data?.message ||
+        (error instanceof Error ? error.message : "Something went wrong")
       );
     }
   }

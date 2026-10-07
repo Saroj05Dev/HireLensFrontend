@@ -46,10 +46,17 @@ axiosInstance.interceptors.response.use(
       originalRequest.url?.includes("/auth/register") ||
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/accept-invite");
+    const isOtpVerificationEndpoint =
+      originalRequest.url?.includes("/auth/verify-otp") ||
+      originalRequest.url?.includes("/auth/verify-reset-otp");
     const isRefreshEndpoint = originalRequest.url?.includes("/auth/refresh");
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      if (isOtpVerificationEndpoint) {
+        return Promise.reject(error);
+      }
 
       if ((isAuthCheck || isLoginEndpoint) && !isRefreshing) {
         return Promise.reject(error);
